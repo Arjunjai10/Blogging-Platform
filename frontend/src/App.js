@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
 // Components
@@ -36,38 +36,11 @@ import { AuthProvider } from './context/AuthContext';
 import { PostProvider } from './context/PostContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { SettingsProvider } from './context/SettingsContext';
+import ThemeContextProvider, { ThemeContext } from './context/ThemeContext';
 import PrivateRoute from './components/routing/PrivateRoute';
 import PrivateAdminRoute from './components/routing/PrivateAdminRoute';
 
-// Create theme
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#000000', // Changed from blue to black
-      light: '#333333',
-      dark: '#000000',
-      contrastText: '#ffffff',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-    background: {
-      default: '#f5f5f5',
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h1: {
-      fontWeight: 500,
-    },
-    h2: {
-      fontWeight: 500,
-    },
-    h3: {
-      fontWeight: 500,
-    },
-  },
-});
+
 
 function App() {
   // Set document title based on settings
@@ -75,6 +48,16 @@ function App() {
     // Set default title
     document.title = 'Blog';
   }, []);
+  
+  return (
+    <ThemeContextProvider>
+      <AppContent />
+    </ThemeContextProvider>
+  );
+}
+
+function AppContent() {
+  const { theme } = useContext(ThemeContext);
   
   return (
     <AuthProvider>

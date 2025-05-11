@@ -35,7 +35,6 @@ import WhatshotIcon from '@mui/icons-material/Whatshot';
 import BookmarkAddIcon from '@mui/icons-material/BookmarkAdd';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import EmailIcon from '@mui/icons-material/Email';
 import PostCard from '../components/posts/PostCard';
 import { PostContext } from '../context/PostContext';
 import { SettingsContext } from '../context/SettingsContext';
@@ -58,15 +57,14 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
+  
+
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState(0);
   const [categories, setCategories] = useState(['all']);
   const [carouselIndex, setCarouselIndex] = useState(0);
-  const [email, setEmail] = useState('');
-  const [subscribeLoading, setSubscribeLoading] = useState(false);
-  const [subscribeSuccess, setSubscribeSuccess] = useState(false);
-  const [subscribeError, setSubscribeError] = useState(null);
+
   const [sortOption, setSortOption] = useState('newest');
   
   const postsPerPage = 6;
@@ -242,33 +240,7 @@ const Home = () => {
     );
   };
 
-  // Handle newsletter subscription
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
-  };
 
-  const handleSubscribe = async (e) => {
-    e.preventDefault();
-    if (!email || !/\S+@\S+\.\S+/.test(email)) {
-      setSubscribeError('Please enter a valid email address');
-      return;
-    }
-
-    setSubscribeLoading(true);
-    setSubscribeError(null);
-
-    try {
-      // This would typically call your newsletter subscription API
-      // For now, we'll just simulate a successful subscription
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setSubscribeSuccess(true);
-      setEmail('');
-    } catch (err) {
-      setSubscribeError('Failed to subscribe. Please try again.');
-    } finally {
-      setSubscribeLoading(false);
-    }
-  };
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -282,8 +254,9 @@ const Home = () => {
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
             backgroundImage: `url(${featuredPosts[0].image})`,
-            borderRadius: 2,
+            borderRadius: { xs: 1, sm: 2 },
             overflow: 'hidden',
+            minHeight: { xs: '300px', sm: '400px' }
           }}
         >
           <Box
@@ -303,6 +276,10 @@ const Home = () => {
                   position: 'relative',
                   p: { xs: 3, md: 6 },
                   pr: { md: 0 },
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center'
                 }}
               >
                 <Typography component="h1" variant="h3" color="white" gutterBottom>
@@ -418,7 +395,15 @@ const Home = () => {
 
       {/* Search, Sort and Category Tabs */}
       <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 2 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' }, 
+          gap: 2, 
+          mb: 2,
+          '& .MuiFormControl-root': {
+            minWidth: '100%'
+          }
+        }}>
           <TextField
             fullWidth
             label="Search posts"
@@ -457,6 +442,16 @@ const Home = () => {
           variant="scrollable"
           scrollButtons="auto"
           aria-label="category tabs"
+          sx={{
+            '& .MuiTabs-flexContainer': {
+              justifyContent: { xs: 'flex-start', md: 'center' }
+            },
+            '& .MuiTab-root': {
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              minWidth: { xs: 'auto', sm: 80 },
+              px: { xs: 1, sm: 2 }
+            }
+          }}
         >
           {categories.map((cat, index) => (
             <Tab 
@@ -558,67 +553,12 @@ const Home = () => {
           )}
         </>
       )}
-      {/* Newsletter Subscription */}
-      <Paper
-        sx={{
-          mt: 6,
-          p: { xs: 3, md: 6 },
-          backgroundColor: theme => alpha(theme.palette.primary.main, 0.05),
-          borderRadius: 2,
-        }}
-      >
-        <Grid container spacing={3} alignItems="center">
-          <Grid sx={{ gridColumn: { xs: 'span 12', md: 'span 7' } }}>
-            <Typography variant="h4" gutterBottom>
-              Subscribe to our Newsletter
-            </Typography>
-            <Typography variant="body1" color="text.secondary" paragraph>
-              Get the latest posts and updates delivered straight to your inbox. No spam, we promise!
-            </Typography>
-          </Grid>
-          <Grid sx={{ gridColumn: { xs: 'span 12', md: 'span 5' } }}>
-            <Box component="form" onSubmit={handleSubscribe} noValidate>
-              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1 }}>
-                <TextField
-                  fullWidth
-                  label="Email Address"
-                  variant="outlined"
-                  value={email}
-                  onChange={handleEmailChange}
-                  error={!!subscribeError}
-                  helperText={subscribeError}
-                  disabled={subscribeLoading || subscribeSuccess}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <EmailIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={subscribeLoading || subscribeSuccess}
-                  sx={{ height: { sm: 56 }, minWidth: { sm: 150 } }}
-                >
-                  {subscribeLoading ? <CircularProgress size={24} /> : subscribeSuccess ? 'Subscribed!' : 'Subscribe'}
-                </Button>
-              </Box>
-              {subscribeSuccess && (
-                <Alert severity="success" sx={{ mt: 2 }}>
-                  Thank you for subscribing! You'll receive our next newsletter soon.
-                </Alert>
-              )}
-            </Box>
-          </Grid>
-        </Grid>
-      </Paper>
+
 
       {/* Site Info from Settings */}
       <Box sx={{ mt: 6, textAlign: 'center' }}>
         <Typography variant="h3" gutterBottom>
-          {settings && settings.general ? settings.general.siteName : 'MERN Blog'}
+          {settings && settings.general ? settings.general.siteName : 'EchoRidge'}
         </Typography>
         <Typography variant="subtitle1" color="text.secondary" paragraph>
           {settings && settings.general ? settings.general.siteDescription : 'A modern blog platform built with the MERN stack'}

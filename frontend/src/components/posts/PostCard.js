@@ -27,7 +27,12 @@ const StyledCard = styled(Card)(({ theme }) => ({
   padding: '0rem',
   margin: '0rem',
   flexDirection: 'column',
-  transition: 'transform 0.3s ease-in-out',
+  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+  borderRadius: theme.spacing(1.5),
+  overflow: 'hidden',
+  [theme.breakpoints.down('sm')]: {
+    borderRadius: theme.spacing(1),
+  },
   '&:hover': {
     transform: 'translateY(-5px)',
     boxShadow: theme.shadows[8]
@@ -101,9 +106,13 @@ const PostCard = ({ post, onBookmark, onShare }) => {
           height="200"
           image={image.startsWith('http') ? image : `${API_BASE_URL}${image}`}
           alt={title || 'Blog post'}
+          sx={{
+            objectFit: 'cover',
+            height: { xs: '160px', sm: '200px' }
+          }}
         />
       )}
-      <CardContent sx={{ flexGrow: 1 }}>
+      <CardContent sx={{ flexGrow: 1, px: { xs: 2, sm: 3 }, py: { xs: 2, sm: 2.5 } }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <Avatar
             src={author?.profilePicture ? 
@@ -129,7 +138,17 @@ const PostCard = ({ post, onBookmark, onShare }) => {
           </Typography>
         </Box>
         
-        <Typography gutterBottom variant="h5" component="div">
+        <Typography 
+          gutterBottom 
+          variant="h5" 
+          component="div"
+          sx={{ 
+            fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.5rem' },
+            fontWeight: '600',
+            lineHeight: 1.3,
+            mb: 1
+          }}
+        >
           {title || 'Untitled Post'}
         </Typography>
         
@@ -151,7 +170,13 @@ const PostCard = ({ post, onBookmark, onShare }) => {
         </Stack>
       </CardContent>
       
-      <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
+      <CardActions sx={{ 
+        justifyContent: 'space-between', 
+        px: { xs: 2, sm: 3 }, 
+        pb: { xs: 1.5, sm: 2 },
+        pt: 0,
+        flexWrap: { xs: 'wrap', sm: 'nowrap' }
+      }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
             <FavoriteIcon fontSize="small" color="error" sx={{ mr: 0.5 }} />
@@ -162,7 +187,7 @@ const PostCard = ({ post, onBookmark, onShare }) => {
             <Typography variant="body2">{comments ? comments.length : 0}</Typography>
           </Box>
         </Box>
-        <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', width: { xs: '100%', sm: 'auto' }, mt: { xs: 1, sm: 0 }, justifyContent: { xs: 'flex-end', sm: 'flex-end' } }}>
           <IconButton size="small" onClick={handleShare} aria-label="share">
             <ShareIcon fontSize="small" />
           </IconButton>
@@ -181,7 +206,14 @@ const PostCard = ({ post, onBookmark, onShare }) => {
             color="primary" 
             component={RouterLink} 
             to={`/posts/${_id}`}
-            sx={{ ml: 1 }}
+            variant="outlined"
+            sx={{ 
+              ml: 1,
+              borderRadius: '20px',
+              px: { xs: 2, sm: 2 },
+              py: 0.5,
+              fontSize: { xs: '0.75rem', sm: '0.8125rem' }
+            }}
           >
             Read More
           </Button>

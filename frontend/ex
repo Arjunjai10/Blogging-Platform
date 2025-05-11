@@ -1,1 +1,12 @@
 taskkill /f /im node.exe
+
+git rm -r --cached .
+git add .
+git commit -m "Re-added everything including frontend"
+git push origin main
+
+
+REACT_APP_API_URL=http://localhost:5000
+
+REACT_APP_API_URL=http://192.168.45.44:5000
+HOST=192.168.45.44

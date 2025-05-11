@@ -39,6 +39,7 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import { AuthContext } from '../../context/AuthContext';
+import { ThemeContext } from '../../context/ThemeContext';
 import NotificationMenu from '../notifications/NotificationMenu';
 
 // Styled search component
@@ -77,6 +78,12 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
     transition: theme.transitions.create('width'),
     width: '100%',
+    [theme.breakpoints.up('sm')]: {
+      width: '12ch',
+      '&:focus': {
+        width: '20ch',
+      },
+    },
     [theme.breakpoints.up('md')]: {
       width: '20ch',
       '&:focus': {
@@ -96,6 +103,7 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useContext(AuthContext);
+  const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   const theme = useTheme();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -103,7 +111,6 @@ const Navbar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
   
   // Get API base URL from environment or default to localhost
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -144,13 +151,7 @@ const Navbar = () => {
     }
   };
   
-  const toggleDarkMode = () => {
-    const newMode = !darkMode;
-    setDarkMode(newMode);
-    localStorage.setItem('darkMode', newMode.toString());
-    // In a real app, you would dispatch an action to update your theme context
-    document.documentElement.setAttribute('data-theme', newMode ? 'dark' : 'light');
-  };
+  // Dark mode toggle is now handled by ThemeContext
   
   // const unreadNotifications = notifications.filter(n => !n.read).length;
   
@@ -212,6 +213,17 @@ const Navbar = () => {
           sx={{ ml: 1 }}
         >
           <BookmarkIcon />
+        </IconButton>
+      </Tooltip>
+      
+      <Tooltip title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}>
+        <IconButton 
+          color="inherit" 
+          onClick={toggleDarkMode}
+          size="large" 
+          sx={{ ml: 1 }}
+        >
+          {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
         </IconButton>
       </Tooltip>
       
@@ -377,7 +389,8 @@ const Navbar = () => {
           p: '2px 4px', 
           display: 'flex', 
           alignItems: 'center',
-          mb: 2
+          mb: 2,
+          borderRadius: '20px'
         }}>
           <InputBase
             sx={{ ml: 1, flex: 1 }}
@@ -392,7 +405,16 @@ const Navbar = () => {
         </Paper>
       </Box>
       
-      <List>
+      <List sx={{ pt: 0 }}>
+        <ListItem disablePadding>
+          <ListItemButton onClick={toggleDarkMode} sx={{ py: 1.5 }}>
+            <ListItemIcon>
+              {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+            </ListItemIcon>
+            <ListItemText primary={darkMode ? "Light Mode" : "Dark Mode"} />
+          </ListItemButton>
+        </ListItem>
+        
         <ListItem disablePadding>
           <ListItemButton component={RouterLink} to="/" onClick={handleDrawerToggle}>
             <ListItemIcon>

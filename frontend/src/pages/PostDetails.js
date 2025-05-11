@@ -219,8 +219,8 @@ const PostDetails = () => {
   }
   
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Paper sx={{ p: { xs: 2, md: 4 }, mb: 4 }}>
+    <Container maxWidth="md" sx={{ py: { xs: 2, md: 4 } }}>
+      <Paper sx={{ p: { xs: 2, md: 4 }, mb: 4, borderRadius: { xs: '12px', md: '16px' } }}>
         {/* Post Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -274,7 +274,17 @@ const PostDetails = () => {
         </Box>
         
         {/* Post Title */}
-        <Typography variant="h4" component="h1" gutterBottom>
+        <Typography 
+          variant="h4" 
+          component="h1" 
+          gutterBottom
+          sx={{ 
+            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
+            fontWeight: '700',
+            lineHeight: 1.2,
+            letterSpacing: '-0.01em'
+          }}
+        >
           {post.title}
         </Typography>
         
@@ -294,46 +304,114 @@ const PostDetails = () => {
         
         {/* Post Image */}
         {post.image && (
-          <Box sx={{ mb: 3, textAlign: 'center' }}>
+          <Box sx={{ textAlign: 'center', mx: { xs: -2, md: -4 }, mt: { xs: -2, md: -4 }, mb: 3 }}>
             <img
               src={`${API_BASE_URL}${post.image}`}
               alt={post.title}
-              style={{ maxWidth: '100%', maxHeight: '500px', borderRadius: '8px' }}
+              style={{ 
+                width: '100%', 
+                maxHeight: '600px', 
+                objectFit: 'cover',
+                borderTopLeftRadius: '12px',
+                borderTopRightRadius: '12px'
+              }}
             />
           </Box>
         )}
         
         {/* Post Content */}
-        <Typography variant="body1" sx={{ mb: 4, lineHeight: 1.8 }}>
+        <Typography 
+          variant="body1" 
+          paragraph 
+          sx={{ 
+            mb: 4, 
+            lineHeight: 1.8,
+            fontSize: { xs: '1rem', md: '1.1rem' },
+            color: theme => theme.palette.mode === 'dark' ? '#e0e0e0' : '#333333',
+            '& p': { mb: 2 },
+            wordBreak: 'break-word'
+          }}
+        >
           {post.content}
         </Typography>
         
         {/* Post Actions */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-          <Box>
-            <IconButton onClick={handleLike} color={hasLiked() ? 'primary' : 'default'}>
-              {hasLiked() ? <ThumbUp /> : <ThumbUpOutlined />}
-            </IconButton>
-            <Typography variant="body2" component="span">
-              {post.likes.length}
-            </Typography>
-            
-            <IconButton sx={{ ml: 2 }}>
-              <CommentIcon />
-            </IconButton>
-            <Typography variant="body2" component="span">
-              {post.comments.length}
-            </Typography>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          mb: 4,
+          flexWrap: { xs: 'wrap', sm: 'nowrap' },
+          gap: { xs: 2, sm: 0 }
+        }}>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            width: { xs: '100%', sm: 'auto' }
+          }}>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              mr: 3,
+              '& .MuiIconButton-root': {
+                borderRadius: '12px',
+                transition: 'all 0.2s ease'
+              }
+            }}>
+              <IconButton 
+                onClick={handleLike} 
+                color={hasLiked() ? 'primary' : 'default'}
+                sx={{ 
+                  bgcolor: hasLiked() ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
+                  '&:hover': {
+                    bgcolor: hasLiked() ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
+                  }
+                }}
+              >
+                {hasLiked() ? <ThumbUp /> : <ThumbUpOutlined />}
+              </IconButton>
+              <Typography variant="body2" sx={{ ml: 0.5 }}>{post.likes.length}</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton 
+                onClick={() => document.getElementById('comment-section').scrollIntoView({ behavior: 'smooth' })}
+                sx={{ 
+                  bgcolor: 'transparent',
+                  '&:hover': {
+                    bgcolor: 'rgba(0, 0, 0, 0.04)'
+                  }
+                }}
+              >
+                <CommentIcon />
+              </IconButton>
+              <Typography variant="body2" sx={{ ml: 0.5 }}>{post.comments.length}</Typography>
+            </Box>
           </Box>
-          
-          <Box>
-            <IconButton onClick={handleShare} color="primary">
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            justifyContent: { xs: 'flex-end', sm: 'flex-end' },
+            width: { xs: '100%', sm: 'auto' }
+          }}>
+            <IconButton 
+              onClick={handleShare}
+              sx={{ 
+                bgcolor: 'transparent',
+                '&:hover': {
+                  bgcolor: 'rgba(0, 0, 0, 0.04)'
+                }
+              }}
+            >
               <Share />
             </IconButton>
-            
             <IconButton 
               onClick={handleBookmarkToggle} 
               color={isBookmarked(post._id) ? 'primary' : 'default'}
+              sx={{ 
+                bgcolor: isBookmarked(post._id) ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
+                '&:hover': {
+                  bgcolor: isBookmarked(post._id) ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
+                }
+              }}
             >
               {isBookmarked(post._id) ? <Bookmark /> : <BookmarkBorder />}
             </IconButton>
@@ -342,10 +420,19 @@ const PostDetails = () => {
       </Paper>
       
       {/* Comments Section */}
-      <Paper sx={{ p: { xs: 2, md: 4 } }}>
-        <Typography variant="h6" gutterBottom>
+      <Box id="comment-section">
+        <Typography 
+          variant="h5" 
+          gutterBottom
+          sx={{ 
+            fontSize: { xs: '1.25rem', md: '1.5rem' },
+            fontWeight: '600'
+          }}
+        >
           Comments ({post.comments.length})
         </Typography>
+        
+        <Divider sx={{ mb: 3 }} />  
         
         {/* Comment Form */}
         {isAuthenticated ? (
@@ -393,7 +480,7 @@ const PostDetails = () => {
             No comments yet. Be the first to comment!
           </Typography>
         )}
-      </Paper>
+      </Box>
       
       {/* Delete Confirmation Dialog */}
       <Dialog

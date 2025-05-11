@@ -7,6 +7,7 @@
   color: var(--text-color);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden; /* Prevent horizontal scroll on mobile */
 }
 
 /* Page container for sticky footer */
@@ -15,11 +16,14 @@
   flex-direction: column;
   min-height: 100vh;
   width: 100%;
+  position: relative;
 }
 
 .content-wrap {
   flex: 1;
   padding-bottom: 2.5rem; /* Footer height */
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Dark mode styles */
@@ -49,6 +53,102 @@
   margin: 0 auto;
   padding: 1rem;
 }
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid #4299e1;
+  outline-offset: 4px;
+  transition: outline-offset 0.2s ease;
+}
+
+/* General container layout for small screens */
+@media (max-width: 600px) {
+  .container {
+    padding: 1rem;
+    margin: 0 auto;
+    max-width: 100%;
+  }
+
+  /* Touch targets: buttons & icons */
+  button,
+  .MuiButtonBase-root,
+  .MuiIconButton-root {
+    min-width: 48px;
+    min-height: 48px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    touch-action: manipulation;
+    border-radius: 0.5rem;
+  }
+
+  /* Form elements */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+    padding: 0.75rem;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 0.5rem;
+  }
+
+  /* Images */
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Responsive text scaling */
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  p {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 605px) and (max-width: 960px) {
+  .container {
+    padding: 1.5rem;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 15px;
+    padding: 0.6rem;
+    border-radius: 0.4rem;
+  }
+
+  button {
+    font-size: 1rem;
+    padding: 0.65rem 1rem;
+  }
+}
+
+/* Optional: Improve button hover/focus globally */
+button:hover,
+button:focus {
+  background-color: #edf2f7;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
 
 /* Logo styles */
 .App-logo,

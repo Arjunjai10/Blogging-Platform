@@ -90,6 +90,6 @@ app.get('/', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(PORT, '192.168.45.44', () => {
+  console.log(`Server running on http://192.168.45.44:${PORT}`);
 });

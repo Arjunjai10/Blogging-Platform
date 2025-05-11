@@ -58,7 +58,7 @@ const AdminDashboard = () => {
     setError(null);
     try {
       // Fetch real data from the backend API
-      const response = await axios.get('http://localhost:5000/api/admin/dashboard', {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/admin/dashboard`, {
         headers: {
           'x-auth-token': localStorage.getItem('token')
         }
@@ -77,7 +77,7 @@ const AdminDashboard = () => {
       
       // Try fallback to basic stats endpoint if dashboard endpoint fails
       try {
-        const fallbackResponse = await axios.get('http://localhost:5000/api/admin/stats');
+        const fallbackResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/admin/stats`);
         setStats(fallbackResponse.data);
         setSnackbar({
           open: true,
@@ -102,6 +102,7 @@ const AdminDashboard = () => {
     // Redirect if not authenticated or not an admin
     if (!isAuthenticated || (user && !user.isAdmin)) {
       navigate('/admin/login');
+      return;
     }
   }, [isAuthenticated, user, navigate]);
 
@@ -251,6 +252,8 @@ const AdminDashboard = () => {
                 </CardActions>
               </Card>
             </Grid>
+
+
             
             <Grid item xs={12} sm={6} md={3}>
               <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
