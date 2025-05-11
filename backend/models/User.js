@@ -18,8 +18,21 @@ const UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
+    required: function() {
+      // Password is required only if googleId is not present
+      return !this.googleId;
+    },
     minlength: 6
+  },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
   },
   profilePicture: {
     type: String,
@@ -44,12 +57,25 @@ const UserSchema = new mongoose.Schema({
   isAdmin: {
     type: Boolean,
     default: false
-  }
+  },
+  followers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
+  ],
+  following: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
+  ]
 }, { timestamps: true });
 
 // Hash password before saving
 UserSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
+  // Skip password hashing if using Google auth or password not modified
+  if (this.googleId || !this.isModified('password') || !this.password) return next();
   
   try {
     const salt = await bcrypt.genSalt(10);
@@ -62,6 +88,8 @@ UserSchema.pre('save', async function(next) {
 
 // Method to compare passwords
 UserSchema.methods.comparePassword = async function(candidatePassword) {
+  // If user is authenticated via Google, password comparison is not applicable
+  if (this.googleId && !this.password) return false;
   return bcrypt.compare(candidatePassword, this.password);
 };
 

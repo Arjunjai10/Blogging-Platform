@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const passport = require('passport');
 
 // Register a new user
 exports.register = async (req, res) => {
@@ -191,4 +192,60 @@ exports.createAdmin = async (req, res) => {
     console.error(err.message);
     res.status(500).send('Server error');
   }
+};
+
+// Google OAuth login
+exports.googleAuth = (req, res, next) => {
+  // Check if Google credentials are configured
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    return res.status(501).json({ msg: 'Google authentication is not configured on the server' });
+  }
+  
+  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+};
+
+// Google OAuth callback
+exports.googleCallback = (req, res, next) => {
+  // Check if Google credentials are configured
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    return res.status(501).json({ msg: 'Google authentication is not configured on the server' });
+  }
+  
+  passport.authenticate('google', { session: false }, (err, user) => {
+    if (err) {
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=${encodeURIComponent('Google authentication failed')}`);
+    }
+    
+    if (!user) {
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=${encodeURIComponent('No user found')}`);
+    }
+
+    // Create JWT
+    const payload = {
+      user: {
+        id: user.id
+      }
+    };
+
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' },
+      (err, token) => {
+        if (err) {
+          console.error('JWT Sign error:', err);
+          return res.redirect(`${process.env.FRONTEND_URL}/login?error=${encodeURIComponent('Authentication error')}`);
+        }
+        
+        // Redirect to frontend with token and user data
+        const userData = user.toObject();
+        delete userData.password;
+        
+        // Use query params for simplicity, but in production consider more secure methods
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/auth/google/callback?token=${token}&user=${encodeURIComponent(JSON.stringify(userData))}`
+        );
+      }
+    );
+  })(req, res, next);
 };

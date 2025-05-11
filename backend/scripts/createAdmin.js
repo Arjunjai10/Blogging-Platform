@@ -6,7 +6,7 @@ const adminUser = {
   username: 'admin',
   email: 'admin@example.com',
   password: 'Admin@123',
-  adminSecret: process.env.ADMIN_SECRET_KEY
+  adminSecret: 'admin123456secretkey'
 };
 
 // API base URL

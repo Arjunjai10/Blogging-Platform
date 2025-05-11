@@ -4,6 +4,10 @@ const authController = require('../controllers/authController');
 const auth = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
+const passport = require('passport');
+
+// Import passport configuration
+require('../config/passport');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -56,5 +60,15 @@ router.post('/admin/login', authController.adminLogin);
 // @desc    Create admin user
 // @access  Public (but protected by secret key)
 router.post('/admin/create', authController.createAdmin);
+
+// @route   GET api/auth/google
+// @desc    Google OAuth login
+// @access  Public
+router.get('/google', authController.googleAuth);
+
+// @route   GET api/auth/google/callback
+// @desc    Google OAuth callback
+// @access  Public
+router.get('/google/callback', authController.googleCallback);
 
 module.exports = router;

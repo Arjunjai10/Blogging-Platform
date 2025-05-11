@@ -61,4 +61,24 @@ router.put('/:id', auth, upload.single('profilePicture'), userController.updateP
 // @access  Private
 router.put('/password/:id', auth, userController.updatePassword);
 
+// @route   POST api/users/follow/:id
+// @desc    Follow a user
+// @access  Private
+router.post('/follow/:id', auth, userController.followUser);
+
+// @route   DELETE api/users/follow/:id
+// @desc    Unfollow a user
+// @access  Private
+router.delete('/follow/:id', auth, userController.unfollowUser);
+
+// @route   GET api/users/:id/followers
+// @desc    Get user's followers
+// @access  Public
+router.get('/:id/followers', userController.getFollowers);
+
+// @route   GET api/users/:id/following
+// @desc    Get users that a user is following
+// @access  Public
+router.get('/:id/following', userController.getFollowing);
+
 module.exports = router;

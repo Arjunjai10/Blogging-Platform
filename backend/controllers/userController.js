@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Post = require('../models/Post');
 const bcrypt = require('bcryptjs');
+const upload = require('../config/multer');
 
 // Get user profile
 exports.getUserProfile = async (req, res) => {
@@ -22,8 +23,10 @@ exports.getUserProfile = async (req, res) => {
 };
 
 // Update user profile
+// Update user profile with profile picture
 exports.updateProfile = async (req, res) => {
   try {
+    // File is already handled by multer middleware in the route
     const { username, email, bio } = req.body;
     
     // Check if user is updating their own profile
@@ -47,7 +50,10 @@ exports.updateProfile = async (req, res) => {
     
     res.json(user);
   } catch (err) {
-    console.error(err.message);
+    console.error(err);
+    if (err.status) {
+      return res.status(err.status).json({ msg: err.message });
+    }
     res.status(500).send('Server error');
   }
 };
@@ -77,7 +83,10 @@ exports.updatePassword = async (req, res) => {
     
     res.json({ msg: 'Password updated successfully' });
   } catch (err) {
-    console.error(err.message);
+    console.error(err);
+    if (err.status) {
+      return res.status(err.status).json({ msg: err.message });
+    }
     res.status(500).send('Server error');
   }
 };
@@ -102,7 +111,10 @@ exports.getBookmarks = async (req, res) => {
     
     res.json(user.bookmarks);
   } catch (err) {
-    console.error(err.message);
+    console.error(err);
+    if (err.status) {
+      return res.status(err.status).json({ msg: err.message });
+    }
     res.status(500).send('Server error');
   }
 };
@@ -166,6 +178,140 @@ exports.removeBookmark = async (req, res) => {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ msg: 'Post not found' });
+    }
+    res.status(500).send('Server error');
+  }
+};
+
+// Follow a user
+exports.followUser = async (req, res) => {
+  try {
+    // Check if trying to follow self
+    if (req.params.id === req.user.id) {
+      return res.status(400).json({ msg: 'You cannot follow yourself' });
+    }
+    
+    // Get target user to follow
+    const userToFollow = await User.findById(req.params.id);
+    if (!userToFollow) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+    
+    // Get current user
+    const currentUser = await User.findById(req.user.id);
+    
+    // Check if already following
+    if (currentUser.following.includes(req.params.id)) {
+      return res.status(400).json({ msg: 'You are already following this user' });
+    }
+    
+    // Add to following list of current user
+    currentUser.following.push(req.params.id);
+    await currentUser.save();
+    
+    // Add to followers list of target user
+    userToFollow.followers.push(req.user.id);
+    await userToFollow.save();
+    
+    res.json({ 
+      msg: `You are now following ${userToFollow.username}`,
+      following: currentUser.following,
+      followers: userToFollow.followers
+    });
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+    res.status(500).send('Server error');
+  }
+};
+
+// Unfollow a user
+exports.unfollowUser = async (req, res) => {
+  try {
+    // Check if trying to unfollow self
+    if (req.params.id === req.user.id) {
+      return res.status(400).json({ msg: 'You cannot unfollow yourself' });
+    }
+    
+    // Get target user to unfollow
+    const userToUnfollow = await User.findById(req.params.id);
+    if (!userToUnfollow) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+    
+    // Get current user
+    const currentUser = await User.findById(req.user.id);
+    
+    // Check if actually following
+    if (!currentUser.following.includes(req.params.id)) {
+      return res.status(400).json({ msg: 'You are not following this user' });
+    }
+    
+    // Remove from following list of current user
+    currentUser.following = currentUser.following.filter(
+      followingId => followingId.toString() !== req.params.id
+    );
+    await currentUser.save();
+    
+    // Remove from followers list of target user
+    userToUnfollow.followers = userToUnfollow.followers.filter(
+      followerId => followerId.toString() !== req.user.id
+    );
+    await userToUnfollow.save();
+    
+    res.json({ 
+      msg: `You have unfollowed ${userToUnfollow.username}`,
+      following: currentUser.following,
+      followers: userToUnfollow.followers
+    });
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+    res.status(500).send('Server error');
+  }
+};
+
+// Get followers
+exports.getFollowers = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select('followers')
+      .populate('followers', 'username profilePicture bio');
+    
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+    
+    res.json(user.followers);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+    res.status(500).send('Server error');
+  }
+};
+
+// Get following
+exports.getFollowing = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select('following')
+      .populate('following', 'username profilePicture bio');
+    
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+    
+    res.json(user.following);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'User not found' });
     }
     res.status(500).send('Server error');
   }
