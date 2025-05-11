@@ -26,6 +26,13 @@ exports.getUserProfile = async (req, res) => {
 // Update user profile with profile picture
 exports.updateProfile = async (req, res) => {
   try {
+    console.log('Update profile request received:', { 
+      userId: req.params.id,
+      authUserId: req.user?.id,
+      hasFile: !!req.file,
+      bodyFields: Object.keys(req.body)
+    });
+    
     // File is already handled by multer middleware in the route
     const { username, email, bio } = req.body;
     
@@ -39,7 +46,21 @@ exports.updateProfile = async (req, res) => {
     if (username) profileFields.username = username;
     if (email) profileFields.email = email;
     if (bio) profileFields.bio = bio;
-    if (req.file) profileFields.profilePicture = `/uploads/${req.file.filename}`;
+    
+    // Handle profile picture if provided
+    if (req.file) {
+      try {
+        // Use a full URL path that will be accessible from the frontend
+        const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+        profileFields.profilePicture = `${baseUrl}/uploads/${req.file.filename}`;
+        console.log('Profile picture path set to:', profileFields.profilePicture);
+      } catch (fileErr) {
+        console.error('Error processing profile picture:', fileErr);
+        // Continue without updating profile picture
+      }
+    }
+    
+    console.log('Updating user with fields:', profileFields);
     
     // Update user
     const user = await User.findByIdAndUpdate(
@@ -48,13 +69,25 @@ exports.updateProfile = async (req, res) => {
       { new: true }
     ).select('-password');
     
+    if (!user) {
+      console.error('User not found with ID:', req.params.id);
+      return res.status(404).json({ msg: 'User not found' });
+    }
+    
+    console.log('User updated successfully');
     res.json(user);
   } catch (err) {
-    console.error(err);
+    console.error('Error in updateProfile:', err);
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ msg: 'Invalid input data', details: err.message });
+    }
+    if (err.code === 11000) {
+      return res.status(400).json({ msg: 'Username or email already exists' });
+    }
     if (err.status) {
       return res.status(err.status).json({ msg: err.message });
     }
-    res.status(500).send('Server error');
+    res.status(500).json({ msg: 'Server error', details: err.message });
   }
 };
 

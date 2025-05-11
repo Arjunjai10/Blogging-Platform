@@ -548,7 +548,7 @@ const CreatePost = () => {
                 <input
                   id="image-upload"
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/gif,image/*"
                   onChange={handleImageChange}
                   style={{ display: 'none' }}
                 />

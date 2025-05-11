@@ -280,7 +280,7 @@ const EditProfile = () => {
                   sx={{ width: 100, height: 100 }}
                 />
                 <input
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/gif,image/*"
                   style={{ display: 'none' }}
                   id="profile-image-upload"
                   type="file"

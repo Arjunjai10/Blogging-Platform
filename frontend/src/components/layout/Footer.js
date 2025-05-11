@@ -38,9 +38,31 @@ const Footer = () => {
       <Container maxWidth="lg">
         <Grid container spacing={4}>
           <Grid item xs={12} md={4}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-              {siteName}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <Box 
+                component="img"
+                src="/DB.gif"
+                alt="EchoRidge Logo"
+                sx={{ 
+                  height: 40, 
+                  width: 40, 
+                  marginRight: 1.5,
+                  borderRadius: '50%',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                }}
+              />
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontWeight: 'bold',
+                  display: 'flex'
+                }}
+                className="navbar-brand"
+              >
+                <span className="echo">Echo</span>
+                <span className="ridge">Ridge</span>
+              </Typography>
+            </Box>
             <Typography variant="body2" paragraph>
               {settings?.general?.siteDescription || 'A modern blog platform built with the MERN stack'}
             </Typography>
@@ -73,22 +95,46 @@ const Footer = () => {
             </Typography>
             <Box sx={{ display: 'flex', justifyContent: { xs: 'center', md: 'flex-start' } }}>
               <Tooltip title="GitHub">
-                <SocialIconButton aria-label="github">
+                <SocialIconButton 
+                  aria-label="github"
+                  component="a"
+                  href="https://github.com/EchoRidge"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <GitHubIcon />
                 </SocialIconButton>
               </Tooltip>
               <Tooltip title="Twitter">
-                <SocialIconButton aria-label="twitter">
+                <SocialIconButton 
+                  aria-label="twitter"
+                  component="a"
+                  href="https://twitter.com/EchoRidge"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <TwitterIcon />
                 </SocialIconButton>
               </Tooltip>
               <Tooltip title="LinkedIn">
-                <SocialIconButton aria-label="linkedin">
+                <SocialIconButton 
+                  aria-label="linkedin"
+                  component="a"
+                  href="https://linkedin.com/company/echoridge"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <LinkedInIcon />
                 </SocialIconButton>
               </Tooltip>
               <Tooltip title="Facebook">
-                <SocialIconButton aria-label="facebook">
+                <SocialIconButton 
+                  aria-label="facebook"
+                  component="a"
+                  href="https://facebook.com/EchoRidge"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <FacebookIcon />
                 </SocialIconButton>
               </Tooltip>

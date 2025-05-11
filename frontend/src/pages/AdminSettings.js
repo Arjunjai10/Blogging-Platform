@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { SettingsContext } from '../context/SettingsContext';
 import {
   Container,
   Typography,
@@ -55,13 +56,15 @@ function TabPanel(props) {
 const AdminSettings = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useContext(AuthContext);
+  const { settings: contextSettings, loading: contextLoading, fetchSettings: fetchContextSettings, saveAllSettings } = useContext(SettingsContext);
+  
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [tabValue, setTabValue] = useState(0);
   const [settings, setSettings] = useState({
     general: {
-      siteName: 'MERN Blog',
+      siteName: 'EchoRidge',
       siteDescription: 'A modern blog platform built with the MERN stack',
       postsPerPage: 10,
       allowRegistration: true,
@@ -156,22 +159,21 @@ const AdminSettings = () => {
     setError(null);
     
     try {
-      // Send settings to the API
-      const res = await axios.post('http://localhost:5000/api/settings', settings, {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': localStorage.getItem('token')
-        }
-      });
+      // Use the context's saveAllSettings function
+      const success = await saveAllSettings(settings);
       
-      // Update local state with response
-      setSettings(res.data);
-      
-      setSnackbar({
-        open: true,
-        message: 'Settings saved successfully',
-        severity: 'success'
-      });
+      if (success) {
+        // Refresh context settings
+        fetchContextSettings();
+        
+        setSnackbar({
+          open: true,
+          message: 'Settings saved successfully',
+          severity: 'success'
+        });
+      } else {
+        throw new Error('Failed to save settings');
+      }
     } catch (err) {
       console.error('Error saving settings:', err);
       setError(err.response?.data?.msg || 'Failed to save settings. Please try again.');
@@ -197,8 +199,15 @@ const AdminSettings = () => {
       return;
     }
 
-    fetchSettings();
-  }, [isAuthenticated, user, navigate]);
+    // Use settings from context if available
+    if (contextSettings && !contextLoading) {
+      setSettings(contextSettings);
+      setLoading(false);
+    } else {
+      // Fallback to direct API call if context is not ready
+      fetchSettings();
+    }
+  }, [isAuthenticated, user, navigate, contextSettings, contextLoading]);
 
   if (!isAuthenticated || !user || !user.isAdmin) {
     return null; // Don't render anything while redirecting

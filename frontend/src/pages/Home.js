@@ -57,14 +57,11 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
-  
-
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState(0);
   const [categories, setCategories] = useState(['all']);
   const [carouselIndex, setCarouselIndex] = useState(0);
-
   const [sortOption, setSortOption] = useState('newest');
   
   const postsPerPage = 6;
@@ -240,7 +237,8 @@ const Home = () => {
     );
   };
 
-
+  // Handle newsletter subscription
+  // Navigation functions for the featured posts carousel
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -254,9 +252,8 @@ const Home = () => {
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
             backgroundImage: `url(${featuredPosts[0].image})`,
-            borderRadius: { xs: 1, sm: 2 },
+            borderRadius: 2,
             overflow: 'hidden',
-            minHeight: { xs: '300px', sm: '400px' }
           }}
         >
           <Box
@@ -276,10 +273,6 @@ const Home = () => {
                   position: 'relative',
                   p: { xs: 3, md: 6 },
                   pr: { md: 0 },
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center'
                 }}
               >
                 <Typography component="h1" variant="h3" color="white" gutterBottom>
@@ -395,15 +388,7 @@ const Home = () => {
 
       {/* Search, Sort and Category Tabs */}
       <Box sx={{ mb: 4 }}>
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: { xs: 'column', sm: 'row' }, 
-          gap: 2, 
-          mb: 2,
-          '& .MuiFormControl-root': {
-            minWidth: '100%'
-          }
-        }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 2 }}>
           <TextField
             fullWidth
             label="Search posts"
@@ -442,16 +427,6 @@ const Home = () => {
           variant="scrollable"
           scrollButtons="auto"
           aria-label="category tabs"
-          sx={{
-            '& .MuiTabs-flexContainer': {
-              justifyContent: { xs: 'flex-start', md: 'center' }
-            },
-            '& .MuiTab-root': {
-              fontSize: { xs: '0.75rem', sm: '0.875rem' },
-              minWidth: { xs: 'auto', sm: 80 },
-              px: { xs: 1, sm: 2 }
-            }
-          }}
         >
           {categories.map((cat, index) => (
             <Tab 
@@ -553,7 +528,73 @@ const Home = () => {
           )}
         </>
       )}
-
+      {/* Advertisement Container */}
+      <Paper
+        sx={{
+          mt: 6,
+          p: { xs: 3, md: 4 },
+          backgroundColor: theme => alpha(theme.palette.secondary.main, 0.05),
+          borderRadius: 2,
+          overflow: 'hidden',
+          position: 'relative'
+        }}
+      >
+        <Box 
+          sx={{
+            position: 'absolute',
+            top: 10,
+            right: 10,
+            backgroundColor: 'rgba(0,0,0,0.1)',
+            px: 1,
+            borderRadius: 1,
+            fontSize: '0.75rem'
+          }}
+        >
+          <Typography variant="caption" color="text.secondary">Ad</Typography>
+        </Box>
+        <Grid container spacing={3} alignItems="center">
+          <Grid item xs={12} md={6}>
+            <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
+              Premium <span className="echo">Skill</span><span className="ridge">Elivator</span> Membership
+            </Typography>
+            <Typography variant="body1" paragraph>
+              Unlock exclusive content, premium features, and join our community of passionate readers and writers.
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+              <Button 
+                variant="contained" 
+                color="primary"
+                size="large"
+                sx={{ fontWeight: 'bold', px: 3 }}
+              >
+                Join Now
+              </Button>
+              <Button 
+                variant="outlined" 
+                color="primary"
+                size="large"
+              >
+                Learn More
+              </Button>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Box 
+              component="img"
+              src="/DB.gif"
+              alt="Premium Membership"
+              sx={{
+                maxWidth: '100%',
+                height: 'auto',
+                maxHeight: 250,
+                objectFit: 'contain',
+                borderRadius: 2,
+                boxShadow: 3
+              }}
+            />
+          </Grid>
+        </Grid>
+      </Paper>
 
       {/* Site Info from Settings */}
       <Box sx={{ mt: 6, textAlign: 'center' }}>

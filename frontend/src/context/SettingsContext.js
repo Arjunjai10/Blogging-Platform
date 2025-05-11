@@ -6,7 +6,7 @@ export const SettingsContext = createContext();
 export const SettingsProvider = ({ children }) => {
   const [settings, setSettings] = useState({
     general: {
-      siteName: 'MERN Blog',
+      siteName: 'EchoRidge',
       siteDescription: 'A modern blog platform built with the MERN stack',
       postsPerPage: 10,
       allowRegistration: true,
@@ -46,6 +46,22 @@ export const SettingsProvider = ({ children }) => {
   const fetchSettings = async () => {
     setLoading(true);
     try {
+      // First try to initialize settings if they don't exist yet
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          await axios.post(`${API_BASE_URL}/api/settings/initialize`, {}, {
+            headers: {
+              'x-auth-token': token
+            }
+          });
+        }
+      } catch (initErr) {
+        // Ignore initialization errors, as settings might already exist
+        console.log('Settings initialization skipped:', initErr.message);
+      }
+      
+      // Then fetch all settings
       const res = await axios.get(`${API_BASE_URL}/api/settings`);
       if (res.data && Object.keys(res.data).length > 0) {
         setSettings(res.data);

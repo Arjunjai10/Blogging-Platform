@@ -566,7 +566,7 @@ const Navbar = () => {
                   }}
                 >
                   <img 
-                    src="/blogger.png" 
+                    src="/DB.gif" 
                     alt="Blog Logo" 
                     style={{ 
                       height: '32px',
@@ -577,12 +577,14 @@ const Navbar = () => {
                   <Typography
                     variant="h6"
                     sx={{
-                      fontWeight: 700,
                       color: 'white',
-                      textDecoration: 'none'
+                      textDecoration: 'none',
+                      display: 'flex'
                     }}
+                    className="navbar-brand"
                   >
-                    MERN Blog
+                    <span className="echo">Echo</span>
+                    <span className="ridge">Ridge</span>
                   </Typography>
                 </Box>
                 
@@ -603,7 +605,7 @@ const Navbar = () => {
                   }}
                 >
                   <img 
-                    src="/blogger.png" 
+                    src="/DB.gif" 
                     alt="Blog Logo" 
                     style={{ 
                       height: '36px',
@@ -614,12 +616,14 @@ const Navbar = () => {
                   <Typography
                     variant="h6"
                     sx={{
-                      fontWeight: 700,
                       color: 'white',
                       textDecoration: 'none',
+                      display: 'flex'
                     }}
+                    className="navbar-brand"
                   >
-                    MERN Blog
+                    <span className="echo">Echo</span>
+                    <span className="ridge">Ridge</span>
                   </Typography>
                 </Box>
                 
