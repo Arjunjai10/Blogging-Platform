@@ -555,7 +555,7 @@ const Home = () => {
         <Grid container spacing={3} alignItems="center">
           <Grid item xs={12} md={6}>
             <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
-              Premium <span className="echo">Skill</span><span className="ridge">Elivator</span> Membership
+              Premium <span className="echo">Skill</span><span className="ridge">Elivatave</span> Membership
             </Typography>
             <Typography variant="body1" paragraph>
               Unlock exclusive content, premium features, and join our community of passionate readers and writers.
