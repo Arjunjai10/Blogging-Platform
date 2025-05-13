@@ -28,7 +28,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "vercel-build": "CI=false GENERATE_SOURCEMAP=false react-scripts build",
+    "prebuild": "node build-fix.js",
+    "vercel-build": "node build-fix.js && CI=false GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
