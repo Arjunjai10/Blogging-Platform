@@ -27,9 +27,9 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "node copy-template.js && react-scripts build && node post-build-fix.js",
     "prebuild": "node build-fix.js",
-    "vercel-build": "node build-fix.js && CI=false GENERATE_SOURCEMAP=false react-scripts build",
+    "vercel-build": "node copy-template.js && CI=false GENERATE_SOURCEMAP=false react-scripts build && node post-build-fix.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
