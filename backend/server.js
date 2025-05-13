@@ -40,19 +40,28 @@ app.use(session({
 // Initialize Passport
 app.use(passport.initialize());
 
-// CORS configuration that allows all origins
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-auth-token');
-  
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
-  next();
-});
+// CORS configuration for production and development
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'https://blog-platform-arjunjai10.vercel.app',
+      'https://blog-platform-git-main-arjunjai10.vercel.app',
+      'http://localhost:3000',
+      'http://192.168.45.44:3000'
+    ];
+    // Allow requests with no origin (like mobile apps, curl, etc)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Allow all origins in development
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 
 // Debug middleware for request logging
 app.use((req, res, next) => {

@@ -30,6 +30,7 @@ import AdminPosts from './pages/AdminPosts';
 import AdminComments from './pages/AdminComments';
 import AdminNotifications from './pages/AdminNotifications';
 import AdminSettings from './pages/AdminSettings';
+import Debug from './pages/Debug';
 
 // Context
 import { AuthProvider } from './context/AuthContext';
@@ -104,6 +105,7 @@ function AppContent() {
                         <Route path="/categories" element={<Categories />} />
                         <Route path="/category/:category" element={<Categories />} />
                         <Route path="/notification-debug" element={<NotificationDebug />} />
+                        <Route path="/debug" element={<Debug />} />
                         
                         {/* Admin Routes */}
                         <Route path="/admin/login" element={<AdminLogin />} />
