@@ -18,7 +18,7 @@ const CommentItem = ({ comment, postId, onDeleteComment }) => {
     <Paper sx={{ p: 2, mb: 2 }}>
       <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
         <Avatar
-          src={comment.user.profilePicture ? `http://localhost:5000${comment.user.profilePicture}` : ''}
+          src={comment.user.profilePicture ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${comment.user.profilePicture}` : ''}
           alt={comment.user.username}
           sx={{ mr: 2 }}
         />

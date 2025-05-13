@@ -1,8 +1,8 @@
-# Blog Frontend
+# Getting Started with Create React App
 
-This is the frontend for the MERN stack blogging platform.
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Development
+## Available Scripts
 
 In the project directory, you can run:
 
@@ -11,25 +11,8 @@ In the project directory, you can run:
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-## Vercel Deployment Instructions
-
-### Fixing White Page Error
-
-If you're experiencing a white page error when deploying to Vercel, follow these steps:
-
-1. **Update Environment Variables**
-   - In Vercel dashboard, add these environment variables:
-     - `REACT_APP_API_URL`: Your backend API URL (e.g., https://blog-backend-api.onrender.com)
-     - `REACT_APP_NODE_ENV`: production
-     - `GENERATE_SOURCEMAP`: false
-
-2. **Check Debug Page**
-   - After deployment, navigate to `/debug` on your Vercel site
-   - This will show environment variables and other diagnostic information
-
-3. **Verify Backend Connection**
-   - Make sure your backend is deployed and accessible
-   - Test the API endpoint directly in your browser
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
 
 ### `npm test`
 

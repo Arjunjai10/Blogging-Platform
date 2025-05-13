@@ -40,28 +40,25 @@ app.use(session({
 // Initialize Passport
 app.use(passport.initialize());
 
-// CORS configuration for production and development
+// CORS configuration with more specific settings for Vercel deployment
 const corsOptions = {
-  origin: function (origin, callback) {
-    const allowedOrigins = [
-      'https://blog-platform-arjunjai10.vercel.app',
-      'https://blog-platform-git-main-arjunjai10.vercel.app',
-      'http://localhost:3000',
-      'http://192.168.45.44:3000'
-    ];
-    // Allow requests with no origin (like mobile apps, curl, etc)
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(null, true); // Allow all origins in development
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
-  credentials: true
+  origin: process.env.NODE_ENV === 'production' 
+    ? [process.env.FRONTEND_URL || 'https://your-blog-domain.vercel.app'] 
+    : 'http://localhost:3000',
+  methods: 'GET,POST,PUT,DELETE,OPTIONS',
+  credentials: true,
+  allowedHeaders: 'Content-Type,Authorization,x-auth-token'
 };
 
 app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
 
 // Debug middleware for request logging
 app.use((req, res, next) => {
@@ -98,7 +95,12 @@ app.get('/', (req, res) => {
   res.send('Blog API is running');
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// For local development, start the server
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+// Export the Express API for Vercel serverless deployment
+module.exports = app;

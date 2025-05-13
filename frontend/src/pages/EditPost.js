@@ -43,7 +43,8 @@ const EditPost = () => {
     const fetchPost = async () => {
       try {
         setFetchLoading(true);
-        const res = await axios.get(`http://localhost:5000/api/posts/${id}`);
+        const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const res = await axios.get(`${API_BASE_URL}/api/posts/${id}`);
         
         // Check if user is the author
         if (user && res.data.author._id !== user._id) {
@@ -62,7 +63,7 @@ const EditPost = () => {
         
         if (res.data.image) {
           setCurrentImage(res.data.image);
-          setImagePreview(`http://localhost:5000${res.data.image}`);
+          setImagePreview(`${API_BASE_URL}${res.data.image}`);
         }
         
         setFetchLoading(false);

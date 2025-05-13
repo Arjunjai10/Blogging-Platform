@@ -202,7 +202,8 @@ const CreatePost = () => {
         postData.append('image', image);
       }
       
-      const res = await axios.post('http://localhost:5000/api/posts', postData, {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const res = await axios.post(`${API_BASE_URL}/api/posts`, postData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

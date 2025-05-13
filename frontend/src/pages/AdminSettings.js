@@ -123,14 +123,15 @@ const AdminSettings = () => {
     
     try {
       // Initialize settings if they don't exist yet
-      await axios.post('http://localhost:5000/api/settings/initialize', {}, {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      await axios.post(`${API_BASE_URL}/api/settings/initialize`, {}, {
         headers: {
           'x-auth-token': localStorage.getItem('token')
         }
       });
       
       // Fetch all settings
-      const res = await axios.get('http://localhost:5000/api/settings');
+      const res = await axios.get(`${API_BASE_URL}/api/settings`);
       
       setSettings(res.data);
       setLoading(false);
