@@ -640,7 +640,7 @@ const Navbar = () => {
                       textDecoration: 'none',
                     }}
                   >
-                    MERN Blog
+                    EchoRidge
                   </Typography>
                 </Box>
                 

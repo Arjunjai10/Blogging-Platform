@@ -65,7 +65,7 @@ const AdminSettings = () => {
   const [settings, setSettings] = useState({
     general: {
       siteName: 'EchoRidge',
-      siteDescription: 'A modern blog platform built with the MERN stack',
+      siteDescription: 'Good',
       postsPerPage: 10,
       allowRegistration: true,
       requireEmailVerification: false,

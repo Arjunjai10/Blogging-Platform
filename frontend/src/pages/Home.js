@@ -5,7 +5,6 @@ import {
   Container,
   Typography,
   Box,
-  CircularProgress,
   Alert,
   Pagination,
   TextField,
@@ -40,6 +39,7 @@ import { PostContext } from '../context/PostContext';
 import { SettingsContext } from '../context/SettingsContext';
 import { format } from 'date-fns';
 import { alpha } from '@mui/material/styles';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 // Lazy load PostCard component
 const PostCard = lazy(() => import('../components/posts/PostCard'));
@@ -47,7 +47,7 @@ const PostCard = lazy(() => import('../components/posts/PostCard'));
 // Loading fallback component
 const PostCardSkeleton = () => (
   <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-    <Skeleton variant="rectangular" height={200} />
+    <Skeleton variant="rectangular" height={300} />
     <CardContent>
       <Skeleton variant="text" height={40} />
       <Skeleton variant="text" height={20} />
@@ -320,9 +320,9 @@ const Home = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <CircularProgress />
-      </Box>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <LoadingSpinner message="Loading posts..." />
+      </Container>
     );
   }
 

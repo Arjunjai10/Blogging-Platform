@@ -140,7 +140,7 @@ router.post('/initialize', auth, async (req, res) => {
     const defaultSettings = {
       general: {
         siteName: 'MERN Blog',
-        siteDescription: 'A modern blog platform built with the MERN stack',
+        siteDescription: 'Good',
         postsPerPage: 10,
         allowRegistration: true,
         requireEmailVerification: false,
