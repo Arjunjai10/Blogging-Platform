@@ -284,7 +284,16 @@ const Profile = () => {
         {posts.length > 0 ? (
           <Grid container spacing={3}>
             {posts.map(post => (
-              <Grid key={post._id} xs={12} sm={6} md={4}>
+              <Grid 
+                key={post._id} 
+                sx={{
+                  width: {
+                    xs: '100%',
+                    sm: '50%',
+                    md: '33.33%'
+                  }
+                }}
+              >
                 <PostCard 
                   post={{
                     ...post,

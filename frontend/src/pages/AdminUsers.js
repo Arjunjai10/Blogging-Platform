@@ -90,9 +90,20 @@ const AdminUsers = () => {
   // Delete a user
   const deleteUser = async (userId) => {
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setSnackbar({
+          open: true,
+          message: 'Authentication required. Please log in again.',
+          severity: 'error'
+        });
+        return;
+      }
+
       const response = await axios.delete(`http://localhost:5000/api/admin/users/${userId}`, {
         headers: {
-          'x-auth-token': localStorage.getItem('token')
+          'x-auth-token': token,
+          'Content-Type': 'application/json'
         }
       });
       
@@ -111,9 +122,11 @@ const AdminUsers = () => {
       if (err.response?.status === 403) {
         setSnackbar({
           open: true,
-          message: 'You do not have permission to delete users',
+          message: 'You do not have permission to delete users. Please ensure you are logged in as an admin.',
           severity: 'error'
         });
+        // Redirect to login if unauthorized
+        navigate('/admin/login');
       } else if (err.response?.status === 400 && err.response?.data?.msg === 'Cannot delete admin users') {
         setSnackbar({
           open: true,
@@ -265,10 +278,12 @@ const AdminUsers = () => {
       <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
       >
-        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogTitle id="delete-dialog-title">Confirm Delete</DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText id="delete-dialog-description">
             Are you sure you want to delete the user "{userToDelete?.username}"? 
             This action cannot be undone.
           </DialogContentText>
@@ -276,8 +291,8 @@ const AdminUsers = () => {
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
           <Button 
-            onClick={() => deleteUser(userToDelete?._id)} 
-            color="error" 
+            onClick={() => deleteUser(userToDelete?._id)}
+            color="error"
             variant="contained"
           >
             Delete

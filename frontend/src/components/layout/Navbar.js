@@ -54,10 +54,15 @@ const Search = styled('div')(({ theme }) => ({
   marginRight: theme.spacing(2),
   marginLeft: 0,
   width: '100%',
+  transition: 'all 0.3s ease',
   [theme.breakpoints.up('sm')]: {
     marginLeft: theme.spacing(3),
     width: 'auto',
   },
+  '&:focus-within': {
+    backgroundColor: alpha(theme.palette.common.white, 0.3),
+    boxShadow: '0 0 0 2px rgba(255, 255, 255, 0.2)',
+  }
 }));
 
 const SearchIconWrapper = styled('div')(({ theme }) => ({
@@ -78,12 +83,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
     transition: theme.transitions.create('width'),
     width: '100%',
-    [theme.breakpoints.up('sm')]: {
-      width: '12ch',
-      '&:focus': {
-        width: '20ch',
-      },
-    },
     [theme.breakpoints.up('md')]: {
       width: '20ch',
       '&:focus': {
@@ -96,9 +95,41 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
   boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
   background: theme.palette.mode === 'dark' 
-    ? theme.palette.background.paper 
-    : '#000000', // Changed to black
+    ? 'linear-gradient(45deg, #1a237e 30%, #0d47a1 90%)'
+    : 'linear-gradient(45deg, #000000 30%, #1a237e 90%)',
   transition: 'all 0.3s ease',
+  backdropFilter: 'blur(8px)',
+  '&:hover': {
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+  }
+}));
+
+const StyledButton = styled(Button)(({ theme }) => ({
+  fontWeight: 'bold',
+  borderRadius: '20px',
+  padding: '8px 20px',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    transform: 'translateY(-2px)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+  }
+}));
+
+const StyledIconButton = styled(IconButton)(({ theme }) => ({
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    transform: 'scale(1.1)',
+    backgroundColor: alpha(theme.palette.common.white, 0.1),
+  }
+}));
+
+const StyledAvatar = styled(Avatar)(({ theme }) => ({
+  transition: 'all 0.3s ease',
+  border: `2px solid ${theme.palette.primary.main}`,
+  '&:hover': {
+    transform: 'scale(1.1)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+  }
 }));
 
 const Navbar = () => {
@@ -106,14 +137,11 @@ const Navbar = () => {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   const theme = useTheme();
   const navigate = useNavigate();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery('(max-width:900px)');
   
   const [anchorEl, setAnchorEl] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
-  
-  // Get API base URL from environment or default to localhost
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
   
   useEffect(() => {
     // Fetch notifications if user is authenticated
@@ -151,8 +179,6 @@ const Navbar = () => {
     }
   };
   
-  // Dark mode toggle is now handled by ThemeContext
-  
   // const unreadNotifications = notifications.filter(n => !n.read).length;
   
   const authLinks = (
@@ -160,16 +186,12 @@ const Navbar = () => {
       {/* Admin Dashboard Button - Only visible for admin users */}
       {user?.isAdmin && (
         <Tooltip title="Admin Dashboard">
-          <Button 
+          <StyledButton 
             color="inherit" 
             component={RouterLink} 
             to="/admin/dashboard"
             startIcon={<DashboardIcon />}
             sx={{ 
-              fontWeight: 'bold',
-              borderRadius: '20px',
-              px: 2,
-              mr: 1,
               backgroundColor: alpha(theme.palette.error.main, 0.1),
               '&:hover': {
                 backgroundColor: alpha(theme.palette.error.main, 0.2)
@@ -177,35 +199,30 @@ const Navbar = () => {
             }}
           >
             Dashboard
-          </Button>
+          </StyledButton>
         </Tooltip>
       )}
       
       <Tooltip title="Write a new post">
-        <Button 
+        <StyledButton 
           color="inherit" 
           component={RouterLink} 
           to="/create-post"
           startIcon={<CreateIcon />}
           sx={{ 
-            fontWeight: 'bold',
-            borderRadius: '20px',
-            px: 2,
             '&:hover': {
               backgroundColor: alpha(theme.palette.common.white, 0.2)
             }
           }}
         >
           Write
-        </Button>
+        </StyledButton>
       </Tooltip>
       
-      <Tooltip title="Notifications">
-        <NotificationMenu />
-      </Tooltip>
+      <NotificationMenu />
       
       <Tooltip title="Bookmarks">
-        <IconButton 
+        <StyledIconButton 
           color="inherit" 
           component={RouterLink} 
           to="/bookmarks"
@@ -213,38 +230,42 @@ const Navbar = () => {
           sx={{ ml: 1 }}
         >
           <BookmarkIcon />
-        </IconButton>
+        </StyledIconButton>
       </Tooltip>
-      
+
       <Tooltip title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}>
-        <IconButton 
-          color="inherit" 
+        <StyledIconButton
+          color="inherit"
           onClick={toggleDarkMode}
-          size="large" 
+          size="large"
           sx={{ ml: 1 }}
         >
           {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
-        </IconButton>
+        </StyledIconButton>
       </Tooltip>
       
       <Box sx={{ ml: 1 }}>
-        <Tooltip title="Account">
-          <IconButton 
+        <Tooltip title="Account settings">
+          <StyledIconButton
             onClick={handleMenuOpen} 
-            sx={{ 
-              p: 0,
-              border: '2px solid white',
-              '&:hover': {
-                backgroundColor: alpha(theme.palette.common.white, 0.1)
-              }
-            }}
+            size="small"
+            sx={{ ml: 2 }}
+            aria-controls={Boolean(anchorEl) ? 'account-menu' : undefined}
+            aria-haspopup="true"
+            aria-expanded={Boolean(anchorEl) ? 'true' : undefined}
           >
-            <Avatar 
+            <StyledAvatar 
+              src={user?.profilePicture} 
               alt={user?.username} 
-              src={user?.profilePicture ? `${API_BASE_URL}${user.profilePicture}` : ''}
-              sx={{ width: 32, height: 32 }}
-            />
-          </IconButton>
+              sx={{ 
+                width: 32, 
+                height: 32,
+                bgcolor: theme.palette.primary.main
+              }}
+            >
+              {user?.username?.charAt(0)?.toUpperCase()}
+            </StyledAvatar>
+          </StyledIconButton>
         </Tooltip>
         <Menu
           anchorEl={anchorEl}
@@ -259,12 +280,22 @@ const Navbar = () => {
               filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.15))',
               mt: 1.5,
               width: 220,
+              background: theme.palette.mode === 'dark' 
+                ? 'linear-gradient(45deg, #1a237e 30%, #0d47a1 90%)'
+                : 'white',
               '& .MuiAvatar-root': {
                 width: 32,
                 height: 32,
                 ml: -0.5,
                 mr: 1,
               },
+              '& .MuiMenuItem-root': {
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: alpha(theme.palette.common.white, 0.1),
+                  transform: 'translateX(4px)',
+                }
+              }
             },
           }}
         >
@@ -334,12 +365,11 @@ const Navbar = () => {
   
   const guestLinks = (
     <>
-      <Button 
+      <StyledButton 
         color="inherit" 
         component={RouterLink} 
         to="/login"
         sx={{ 
-          fontWeight: 'bold',
           mx: 1,
           '&:hover': {
             backgroundColor: alpha(theme.palette.common.white, 0.1)
@@ -347,22 +377,23 @@ const Navbar = () => {
         }}
       >
         Login
-      </Button>
-      <Button 
+      </StyledButton>
+      <StyledButton 
         variant="contained" 
         component={RouterLink} 
         to="/register"
         sx={{ 
-          fontWeight: 'bold',
           backgroundColor: 'white',
           color: theme.palette.primary.main,
           '&:hover': {
-            backgroundColor: alpha(theme.palette.common.white, 0.9)
+            backgroundColor: alpha(theme.palette.common.white, 0.9),
+            transform: 'translateY(-2px)',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
           }
         }}
       >
         Register
-      </Button>
+      </StyledButton>
     </>
   );
   
@@ -389,8 +420,7 @@ const Navbar = () => {
           p: '2px 4px', 
           display: 'flex', 
           alignItems: 'center',
-          mb: 2,
-          borderRadius: '20px'
+          mb: 2
         }}>
           <InputBase
             sx={{ ml: 1, flex: 1 }}
@@ -405,16 +435,7 @@ const Navbar = () => {
         </Paper>
       </Box>
       
-      <List sx={{ pt: 0 }}>
-        <ListItem disablePadding>
-          <ListItemButton onClick={toggleDarkMode} sx={{ py: 1.5 }}>
-            <ListItemIcon>
-              {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
-            </ListItemIcon>
-            <ListItemText primary={darkMode ? "Light Mode" : "Dark Mode"} />
-          </ListItemButton>
-        </ListItem>
-        
+      <List>
         <ListItem disablePadding>
           <ListItemButton component={RouterLink} to="/" onClick={handleDrawerToggle}>
             <ListItemIcon>
@@ -566,7 +587,7 @@ const Navbar = () => {
                   }}
                 >
                   <img 
-                    src="/DB.gif" 
+                    src="/blogger.png" 
                     alt="Blog Logo" 
                     style={{ 
                       height: '32px',
@@ -577,14 +598,12 @@ const Navbar = () => {
                   <Typography
                     variant="h6"
                     sx={{
+                      fontWeight: 700,
                       color: 'white',
-                      textDecoration: 'none',
-                      display: 'flex'
+                      textDecoration: 'none'
                     }}
-                    className="navbar-brand"
                   >
-                    <span className="echo">Echo</span>
-                    <span className="ridge">Ridge</span>
+                    MERN Blog
                   </Typography>
                 </Box>
                 
@@ -605,7 +624,7 @@ const Navbar = () => {
                   }}
                 >
                   <img 
-                    src="/DB.gif" 
+                    src="/blogger.png" 
                     alt="Blog Logo" 
                     style={{ 
                       height: '36px',
@@ -616,14 +635,12 @@ const Navbar = () => {
                   <Typography
                     variant="h6"
                     sx={{
+                      fontWeight: 700,
                       color: 'white',
                       textDecoration: 'none',
-                      display: 'flex'
                     }}
-                    className="navbar-brand"
                   >
-                    <span className="echo">Echo</span>
-                    <span className="ridge">Ridge</span>
+                    MERN Blog
                   </Typography>
                 </Box>
                 

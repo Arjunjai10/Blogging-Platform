@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo, useCallback, Suspense, lazy } from 'react';
 import axios from 'axios';
 import { Link as RouterLink } from 'react-router-dom';
 import {
@@ -27,7 +27,8 @@ import {
   useMediaQuery,
   Chip,
   Avatar,
-  IconButton
+  IconButton,
+  Skeleton
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
@@ -35,11 +36,25 @@ import WhatshotIcon from '@mui/icons-material/Whatshot';
 import BookmarkAddIcon from '@mui/icons-material/BookmarkAdd';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import PostCard from '../components/posts/PostCard';
 import { PostContext } from '../context/PostContext';
 import { SettingsContext } from '../context/SettingsContext';
 import { format } from 'date-fns';
 import { alpha } from '@mui/material/styles';
+
+// Lazy load PostCard component
+const PostCard = lazy(() => import('../components/posts/PostCard'));
+
+// Loading fallback component
+const PostCardSkeleton = () => (
+  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Skeleton variant="rectangular" height={200} />
+    <CardContent>
+      <Skeleton variant="text" height={40} />
+      <Skeleton variant="text" height={20} />
+      <Skeleton variant="text" height={20} />
+    </CardContent>
+  </Card>
+);
 
 const Home = () => {
   const theme = useTheme();
@@ -47,7 +62,6 @@ const Home = () => {
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   
   const { addBookmark, removeBookmark, isBookmarked, sharePost } = useContext(PostContext);
-  // Use optional chaining to safely access settings context
   const settingsContext = useContext(SettingsContext);
   const settings = settingsContext?.settings;
   
@@ -63,14 +77,13 @@ const Home = () => {
   const [categories, setCategories] = useState(['all']);
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [sortOption, setSortOption] = useState('newest');
+  const [imageErrors, setImageErrors] = useState({});
   
   const postsPerPage = 6;
-  
-  // Get API base URL from environment or default to localhost
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
   
-  // Format date for hero section
-  const formatDate = (dateString) => {
+  // Memoize formatDate function
+  const formatDate = useCallback((dateString) => {
     try {
       if (!dateString) return 'Unknown date';
       return format(new Date(dateString), 'MMM d, yyyy');
@@ -78,14 +91,169 @@ const Home = () => {
       console.error('Date formatting error:', error);
       return 'Unknown date';
     }
-  };
+  }, []);
   
-  // Truncate text helper function
-  const truncateText = (text, maxLength) => {
+  // Memoize truncateText function
+  const truncateText = useCallback((text, maxLength) => {
     if (!text) return '';
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-  };
+  }, []);
 
+  // Memoize filtered posts
+  const filteredPosts = useMemo(() => {
+    return posts.filter(post => {
+      if (!post || !post.title || !post.content) return false;
+      
+      const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                           post.content.toLowerCase().includes(searchTerm.toLowerCase());
+      const selectedCategory = categories[activeTab];
+      const matchesCategory = selectedCategory === 'all' || 
+                             (post.categories && post.categories.includes(selectedCategory));
+      
+      return matchesSearch && matchesCategory;
+    }).sort((a, b) => {
+      switch (sortOption) {
+        case 'newest':
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        case 'oldest':
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        case 'mostLiked':
+          return (b.likes?.length || 0) - (a.likes?.length || 0);
+        case 'mostCommented':
+          return (b.comments?.length || 0) - (a.comments?.length || 0);
+        case 'alphabetical':
+          return a.title.localeCompare(b.title);
+        default:
+          return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+    });
+  }, [posts, searchTerm, categories, activeTab, sortOption]);
+
+  // Memoize current posts
+  const currentPosts = useMemo(() => {
+    const indexOfLastPost = page * postsPerPage;
+    const indexOfFirstPost = indexOfLastPost - postsPerPage;
+    return filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
+  }, [filteredPosts, page, postsPerPage]);
+
+  // Memoize handlers
+  const handlePageChange = useCallback((event, value) => {
+    setPage(value);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  // Debounce search with proper cleanup
+  const debouncedSearch = useCallback((value) => {
+    const timeoutId = setTimeout(() => {
+      setSearchTerm(value);
+      setPage(1);
+    }, 300);
+    return timeoutId;
+  }, []);
+
+  // Handle search input change with cleanup
+  const handleSearchChange = useCallback((e) => {
+    const value = e.target.value;
+    const timeoutId = debouncedSearch(value);
+    return () => clearTimeout(timeoutId);
+  }, [debouncedSearch]);
+
+  const handleSortChange = useCallback((e) => {
+    setSortOption(e.target.value);
+    setPage(1);
+  }, []);
+
+  const handleTabChange = useCallback((event, newValue) => {
+    setActiveTab(newValue);
+    setPage(1);
+  }, []);
+
+  const handleBookmark = useCallback(async (postId) => {
+    if (!postId) return;
+    
+    if (isBookmarked(postId)) {
+      await removeBookmark(postId);
+    } else {
+      await addBookmark(postId);
+    }
+  }, [isBookmarked, addBookmark, removeBookmark]);
+
+  const handleShare = useCallback(async (post) => {
+    if (!post) return;
+    
+    const result = await sharePost(post);
+    if (result === 'copied') {
+      alert('Link copied to clipboard!');
+    }
+  }, [sharePost]);
+
+  const handleNextCarousel = useCallback(() => {
+    setCarouselIndex((prevIndex) => 
+      prevIndex === featuredPosts.length - 1 ? 0 : prevIndex + 1
+    );
+  }, [featuredPosts.length]);
+
+  const handlePrevCarousel = useCallback(() => {
+    setCarouselIndex((prevIndex) => 
+      prevIndex === 0 ? featuredPosts.length - 1 : prevIndex - 1
+    );
+  }, [featuredPosts.length]);
+
+  // Optimize image loading
+  const [loadedImages, setLoadedImages] = useState({});
+  const handleImageLoad = useCallback((imageUrl) => {
+    setLoadedImages(prev => ({ ...prev, [imageUrl]: true }));
+  }, []);
+
+  // Optimize carousel transitions
+  const carouselStyle = useMemo(() => ({
+    display: 'flex',
+    transition: 'transform 0.5s ease',
+    transform: `translateX(-${carouselIndex * (100 / (isMobile ? 1 : isTablet ? 2 : 3))}%)`,
+    willChange: 'transform'
+  }), [carouselIndex, isMobile, isTablet]);
+
+  // Optimize grid layout
+  const gridContainerStyle = useMemo(() => ({
+    display: 'grid',
+    gridTemplateColumns: {
+      xs: '1fr',
+      sm: 'repeat(2, 1fr)',
+      md: 'repeat(3, 1fr)'
+    },
+    gap: theme.spacing(4)
+  }), [theme]);
+
+  // Optimize featured post background
+  const featuredPostStyle = useMemo(() => ({
+    position: 'relative',
+    mb: 4,
+    backgroundSize: 'cover',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'center',
+    backgroundImage: featuredPosts[0]?.image ? `url(${featuredPosts[0].image})` : 'none',
+    borderRadius: 2,
+    overflow: 'hidden',
+    willChange: 'transform'
+  }), [featuredPosts]);
+
+  // Add this handler function with other handlers
+  const handleImageError = useCallback((imageUrl) => {
+    setImageErrors(prev => ({ ...prev, [imageUrl]: true }));
+  }, []);
+
+  // Add this helper function near the top of the component
+  const getImageUrl = useCallback((imagePath) => {
+    if (!imagePath) return null;
+    // If the image path is already a full URL, return it
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    // Otherwise, prepend the API base URL
+    return `${API_BASE_URL}/${imagePath.replace(/^\//, '')}`;
+  }, [API_BASE_URL]);
+
+  // Fetch posts with error handling
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -132,89 +300,23 @@ const Home = () => {
     fetchPosts();
   }, [API_BASE_URL]);
 
-  // Filter posts based on search term and category
-  const filteredPosts = posts.filter(post => {
-    if (!post || !post.title || !post.content) return false;
-    
-    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         post.content.toLowerCase().includes(searchTerm.toLowerCase());
-    const selectedCategory = categories[activeTab];
-    const matchesCategory = selectedCategory === 'all' || 
-                           (post.categories && post.categories.includes(selectedCategory));
-    
-    return matchesSearch && matchesCategory;
-  }).sort((a, b) => {
-    // Apply sorting based on selected option
-    switch (sortOption) {
-      case 'newest':
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      case 'oldest':
-        return new Date(a.createdAt) - new Date(b.createdAt);
-      case 'mostLiked':
-        return (b.likes?.length || 0) - (a.likes?.length || 0);
-      case 'mostCommented':
-        return (b.comments?.length || 0) - (a.comments?.length || 0);
-      case 'alphabetical':
-        return a.title.localeCompare(b.title);
-      default:
-        return new Date(b.createdAt) - new Date(a.createdAt);
-    }
-  });
-
-  // Pagination
-  const indexOfLastPost = page * postsPerPage;
-  const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
-  const totalFilteredPages = Math.ceil(filteredPosts.length / postsPerPage);
-
+  // Update total pages when filtered posts change
   useEffect(() => {
+    const totalFilteredPages = Math.ceil(filteredPosts.length / postsPerPage);
     setTotalPages(totalFilteredPages || 1);
-    // Reset to page 1 when filters change
     if (page > totalFilteredPages) {
       setPage(1);
     }
-  }, [filteredPosts.length, totalFilteredPages, page]);
+  }, [filteredPosts.length, page, postsPerPage]);
 
-  const handlePageChange = (event, value) => {
-    setPage(value);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-    setPage(1);
-  };
-
-  // Handle sort option change
-  const handleSortChange = (e) => {
-    setSortOption(e.target.value);
-    setPage(1);
-  };
-
-  // Handle tab change for categories
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
-    setPage(1);
-  };
-
-  const handleBookmark = async (postId) => {
-    if (!postId) return;
-    
-    if (isBookmarked(postId)) {
-      await removeBookmark(postId);
-    } else {
-      await addBookmark(postId);
-    }
-  };
-
-  const handleShare = async (post) => {
-    if (!post) return;
-    
-    const result = await sharePost(post);
-    if (result === 'copied') {
-      alert('Link copied to clipboard!');
-    }
-  };
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      // Cleanup any pending timeouts when component unmounts
+      const timeouts = window.timeouts || [];
+      timeouts.forEach(timeoutId => clearTimeout(timeoutId));
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -224,38 +326,11 @@ const Home = () => {
     );
   }
 
-  // Handle carousel navigation
-  const handleNextCarousel = () => {
-    setCarouselIndex((prevIndex) => 
-      prevIndex === featuredPosts.length - 1 ? 0 : prevIndex + 1
-    );
-  };
-
-  const handlePrevCarousel = () => {
-    setCarouselIndex((prevIndex) => 
-      prevIndex === 0 ? featuredPosts.length - 1 : prevIndex - 1
-    );
-  };
-
-  // Handle newsletter subscription
-  // Navigation functions for the featured posts carousel
-
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Hero Section with Featured Post */}
       {featuredPosts.length > 0 && (
-        <Paper
-          sx={{
-            position: 'relative',
-            mb: 4,
-            backgroundSize: 'cover',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
-            backgroundImage: `url(${featuredPosts[0].image})`,
-            borderRadius: 2,
-            overflow: 'hidden',
-          }}
-        >
+        <Paper sx={featuredPostStyle}>
           <Box
             sx={{
               position: 'absolute',
@@ -324,13 +399,7 @@ const Home = () => {
           <Divider sx={{ mb: 3 }} />
           
           <Box sx={{ position: 'relative', overflow: 'hidden' }}>
-            <Box
-              sx={{
-                display: 'flex',
-                transition: 'transform 0.5s ease',
-                transform: `translateX(-${carouselIndex * (100 / (isMobile ? 1 : isTablet ? 2 : 3))}%)`,
-              }}
-            >
+            <Box sx={carouselStyle}>
               {featuredPosts.slice(1).map((post) => (
                 <Box
                   key={post._id}
@@ -346,6 +415,13 @@ const Home = () => {
                       height="200"
                       image={post.image}
                       alt={post.title}
+                      loading="lazy"
+                      onLoad={() => handleImageLoad(post.image)}
+                      onError={() => handleImageError(post.image)}
+                      sx={{
+                        opacity: loadedImages[post.image] ? 1 : 0,
+                        transition: 'opacity 0.3s ease'
+                      }}
                     />
                     <CardContent sx={{ flexGrow: 1 }}>
                       <Typography gutterBottom variant="h5" component="h2">
@@ -408,7 +484,7 @@ const Home = () => {
             <InputLabel id="sort-select-label">Sort By</InputLabel>
             <Select
               labelId="sort-select-label"
-              value={sortOption || 'newest'}
+              value={sortOption}
               label="Sort By"
               onChange={handleSortChange}
             >
@@ -453,20 +529,46 @@ const Home = () => {
           <Divider sx={{ mb: 3 }} />
           
           <Grid container spacing={3}>
-            {trendingPosts.map(post => (
+            {trendingPosts.map(post => {
+              const imageUrl = getImageUrl(post.image);
+              return (
               <Grid key={post._id} sx={{ gridColumn: { xs: 'span 12', sm: 'span 6', md: 'span 3' } }}>
                 <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                  {post.image && (
+                    {imageUrl && !imageErrors[imageUrl] ? (
                     <CardMedia
                       component="img"
-                      height="100"
-                      image={post.image}
+                        height="140"
+                        image={imageUrl}
                       alt={post.title}
-                      sx={{ objectFit: 'cover' }}
-                    />
+                        loading="lazy"
+                        onLoad={() => handleImageLoad(imageUrl)}
+                        onError={() => handleImageError(imageUrl)}
+                        sx={{
+                          opacity: loadedImages[imageUrl] ? 1 : 0,
+                          transition: 'opacity 0.3s ease',
+                          objectFit: 'cover',
+                          height: 140,
+                          width: '100%'
+                        }}
+                      />
+                    ) : (
+                      <Box
+                        sx={{
+                          height: 140,
+                          bgcolor: 'grey.200',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '100%'
+                        }}
+                      >
+                        <Typography variant="body2" color="text.secondary">
+                          {imageErrors[imageUrl] ? 'Image failed to load' : 'No Image'}
+                        </Typography>
+                      </Box>
                   )}
                   <CardContent sx={{ flexGrow: 1 }}>
-                    <Typography gutterBottom variant="h6" component="h3">
+                      <Typography gutterBottom variant="h6" component="h3" noWrap>
                       {post.title}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -477,13 +579,19 @@ const Home = () => {
                     </Box>
                   </CardContent>
                   <Box sx={{ p: 2, pt: 0 }}>
-                    <Button size="small" component={RouterLink} to={`/posts/${post._id}`}>
+                      <Button 
+                        size="small" 
+                        component={RouterLink} 
+                        to={`/posts/${post._id}`}
+                        fullWidth
+                      >
                       Read More
                     </Button>
                   </Box>
                 </Card>
               </Grid>
-            ))}
+              );
+            })}
           </Grid>
         </Box>
       )}
@@ -498,9 +606,10 @@ const Home = () => {
           </Typography>
           <Divider sx={{ mb: 3 }} />
           
-          <Grid container spacing={4}>
+          <Box sx={gridContainerStyle}>
             {currentPosts.map(post => (
-              <Grid key={post._id} sx={{ gridColumn: { xs: 'span 12', sm: 'span 6', md: 'span 4' } }}>
+              <Box key={post._id}>
+                <Suspense fallback={<PostCardSkeleton />}>
                 <PostCard 
                   post={{
                     ...post,
@@ -509,9 +618,10 @@ const Home = () => {
                   onBookmark={handleBookmark}
                   onShare={handleShare}
                 />
-              </Grid>
+                </Suspense>
+              </Box>
             ))}
-          </Grid>
+          </Box>
 
           {totalPages > 1 && (
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -553,7 +663,7 @@ const Home = () => {
           <Typography variant="caption" color="text.secondary">Ad</Typography>
         </Box>
         <Grid container spacing={3} alignItems="center">
-          <Grid item xs={12} md={6}>
+          <Grid sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
             <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
               Premium <span className="echo">Skill</span><span className="ridge">Elivatave</span> Membership
             </Typography>
@@ -578,7 +688,7 @@ const Home = () => {
               </Button>
             </Box>
           </Grid>
-          <Grid item xs={12} md={6} sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Grid sx={{ gridColumn: { xs: 'span 12', md: 'span 6' }, display: 'flex', justifyContent: 'center' }}>
             <Box 
               component="img"
               src="/DB.gif"
@@ -609,4 +719,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default React.memo(Home);

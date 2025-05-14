@@ -196,6 +196,16 @@ export const AuthProvider = ({ children }) => {
   
   // Update user data
   const updateUser = (updatedUserData) => {
+    // Ensure the profile picture URL is properly formatted
+    if (updatedUserData.profilePicture) {
+      // If the URL is relative, prepend the API base URL
+      if (!updatedUserData.profilePicture.startsWith('http')) {
+        const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        updatedUserData.profilePicture = `${API_BASE_URL}${updatedUserData.profilePicture}`;
+      }
+    }
+    
+    // Update both state and localStorage
     setUser(updatedUserData);
     localStorage.setItem('user', JSON.stringify(updatedUserData));
   };

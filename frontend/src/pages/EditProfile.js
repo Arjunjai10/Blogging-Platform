@@ -175,12 +175,12 @@ const EditProfile = () => {
       if (res.data) {
         const updatedUser = {
           ...user,
-          ...res.data
+          ...res.data,
+          // Ensure profile picture URL is properly formatted
+          profilePicture: res.data.profilePicture || user.profilePicture
         };
         
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        
-        // If your app has a function to update the user context, call it here
+        // Update the user context with the new data
         if (typeof updateUser === 'function') {
           updateUser(updatedUser);
         }

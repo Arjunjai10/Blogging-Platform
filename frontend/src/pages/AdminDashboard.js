@@ -293,7 +293,7 @@ const AdminDashboard = () => {
                 <Divider sx={{ mb: 2 }} />
                 <List>
                   <ListItem 
-                    button 
+                    button="true"
                     onClick={() => navigate('/admin/users')}
                   >
                     <ListItemIcon>
@@ -305,7 +305,7 @@ const AdminDashboard = () => {
                     />
                   </ListItem>
                   <ListItem 
-                    button 
+                    button="true"
                     onClick={() => navigate('/admin/posts')}
                   >
                     <ListItemIcon>
@@ -317,7 +317,7 @@ const AdminDashboard = () => {
                     />
                   </ListItem>
                   <ListItem 
-                    button 
+                    button="true"
                     onClick={() => navigate('/admin/notifications')}
                   >
                     <ListItemIcon>
@@ -329,7 +329,7 @@ const AdminDashboard = () => {
                     />
                   </ListItem>
                   <ListItem 
-                    button 
+                    button="true"
                     onClick={() => navigate('/admin/settings')}
                   >
                     <ListItemIcon>
