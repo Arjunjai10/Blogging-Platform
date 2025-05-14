@@ -10,3 +10,10 @@ REACT_APP_API_URL=http://localhost:5000
 
 REACT_APP_API_URL=http://192.168.45.44:5000
 HOST=192.168.45.44
+
+
+# # Replace with your actual Render backend URL
+# REACT_APP_API_URL=https://blogging-platform-msqm.onrender.com
+# PUBLIC_URL=https://blogging-platform-uhre.vercel.app
+# CI=false
+# GENERATE_SOURCEMAP=false

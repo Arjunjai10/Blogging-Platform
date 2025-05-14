@@ -64,7 +64,7 @@ const Footer = () => {
               </Typography>
             </Box>
             <Typography variant="body2" paragraph>
-              {settings?.general?.siteDescription || 'A modern blog platform built with the MERN stack'}
+              {settings?.general?.siteDescription || 'Your go-to blog for all things tech.'}
             </Typography>
             <Typography variant="body2" gutterBottom>
               Contact us: {settings?.contact?.email || 'contact@mernblog.com'}
@@ -149,7 +149,7 @@ const Footer = () => {
             © {new Date().getFullYear()} {siteName} - All rights reserved.
           </Typography>
           <Typography variant="body2" color="white" sx={{ mt: { xs: 1, sm: 0 } }}>
-            Made with ❤️ using MERN Stack
+            Welcome ❤️ 
           </Typography>
         </Box>
       </Container>

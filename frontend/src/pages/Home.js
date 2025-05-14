@@ -602,7 +602,7 @@ const Home = () => {
           {settings && settings.general ? settings.general.siteName : 'EchoRidge'}
         </Typography>
         <Typography variant="subtitle1" color="text.secondary" paragraph>
-          {settings && settings.general ? settings.general.siteDescription : 'A modern blog platform built with the MERN stack'}
+          {settings && settings.general ? settings.general.siteDescription : 'We were Happy To Have You All Here!'}
         </Typography>
       </Box>
     </Container>

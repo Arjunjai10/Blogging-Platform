@@ -45,19 +45,17 @@ app.use(session({
 // Initialize Passport
 app.use(passport.initialize());
 
-// Global CORS configuration
-app.use(cors({
-  origin: ['https://blogging-platform-uhre-d82dlktav.vercel.app', 'http://localhost:3000'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
-}));
+// CORS configuration with more specific settings for Vercel deployment
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? [process.env.FRONTEND_URL || 'https://blogging-platform-uhre.vercel.app/'] 
+    : 'http://localhost:3000',
+  methods: 'GET,POST,PUT,DELETE,OPTIONS',
+  credentials: true,
+  allowedHeaders: 'Content-Type,Authorization,x-auth-token'
+};
 
-// Route-specific CORS (example)
-app.get('/api/posts', cors({
-  origin: '*' // Allow any origin for this specific route
-}), (req, res) => {
-  // Your route handler
-});
+app.use(cors(corsOptions));
 
 // Handle preflight requests
 app.use((req, res, next) => {
