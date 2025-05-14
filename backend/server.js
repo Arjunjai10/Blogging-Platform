@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 const passport = require('passport');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 
 // Import models to ensure they are registered
 require('./models/User');
@@ -29,11 +30,15 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(express.json());
 
-// Session middleware (required for Passport)
+// Session middleware with connect-mongo
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-session-secret',
+  secret: process.env.SESSION_SECRET || 'session_secret_key_for_passport',
   resave: false,
   saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    collectionName: 'sessions'
+  }),
   cookie: { secure: process.env.NODE_ENV === 'production' }
 }));
 
@@ -95,10 +100,13 @@ app.get('/', (req, res) => {
   res.send('Blog API is running');
 });
 
-// Start the server
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Start your server
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log('Connected to MongoDB');
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  })
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
