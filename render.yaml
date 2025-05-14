@@ -27,13 +27,13 @@ services:
         
       # URLs
       - key: FRONTEND_URL
-        value: https://blogging-platform-uhre.vercel.app
+        value: https://blogging-platform-uhre.vercel.app/
       - key: API_URL
-        value: https://your-render-app-url.onrender.com  # Update after deployment
+        value: https://blogging-platform-msqm.onrender.com  # Update after deployment
       - key: BASE_URL
-        value: https://your-render-app-url.onrender.com  # Update after deployment
+        value: https://blogging-platform-msqm.onrender.com  # Update after deployment
       - key: REACT_APP_API_URL
-        value: https://your-render-app-url.onrender.com  # For createAdmin script
+        value: https://blogging-platform-msqm.onrender.com  # For createAdmin script
         
       # Google OAuth (optional but recommended)
       - key: GOOGLE_CLIENT_ID

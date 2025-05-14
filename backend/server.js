@@ -43,7 +43,7 @@ app.use(passport.initialize());
 // CORS configuration with more specific settings for Vercel deployment
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL || 'https://your-blog-domain.vercel.app'] 
+    ? [process.env.FRONTEND_URL || 'https://blogging-platform-uhre.vercel.app/'] 
     : 'http://localhost:3000',
   methods: 'GET,POST,PUT,DELETE,OPTIONS',
   credentials: true,
