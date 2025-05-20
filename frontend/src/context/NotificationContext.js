@@ -1,257 +1,119 @@
-import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { AuthContext } from './AuthContext';
+import { ENDPOINTS } from '../config/api';
+import { useAuth } from './AuthContext';
 
-export const NotificationContext = createContext({
-  notifications: [],
-  unreadCount: 0,
-  loading: false,
-  fetchNotifications: () => {},
-  markAsRead: () => {},
-  markAllAsRead: () => {},
-  deleteNotification: () => {}
-});
+export const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
-  const { isAuthenticated, user } = useContext(AuthContext);
   const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // Get API base URL from environment or default to localhost
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-  
-  // API configuration is handled in config/api.js
-  
-  // Fetch user notifications
-  const fetchNotifications = useCallback(async () => {
-    if (!isAuthenticated || !user) {
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchNotifications();
+    } else {
       setNotifications([]);
-      setUnreadCount(0);
-      return;
+      setLoading(false);
     }
-    
+  }, [isAuthenticated]);
+
+  const fetchNotifications = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.error('No token found in localStorage');
-        setLoading(false);
-        setNotifications([]);
-        setUnreadCount(0);
-        setError('Authentication error - please log in again');
-        return;
+      const response = await axios.get(ENDPOINTS.NOTIFICATIONS.GET);
+      if (response.data) {
+        setNotifications(response.data);
       }
-      
-      console.log('Fetching notifications for user:', user._id);
-      
-      const config = {
-        headers: {
-          'x-auth-token': token,
-          'Content-Type': 'application/json'
-        }
-      };
-      
-      const url = `${API_BASE_URL}/api/notifications/user/${user._id}`;
-      console.log('Request URL:', url);
-      
-      const res = await axios.get(url, config);
-      
-      console.log('Notifications response:', res.data);
-      setNotifications(res.data);
-      setUnreadCount(res.data.filter(notification => !notification.read).length);
-      setError(null);
     } catch (err) {
-      console.error('Error fetching notifications:', err.response?.data || err.message);
-      setNotifications([]);
-      setUnreadCount(0);
-      
-      // Set more specific error messages based on the error
-      if (err.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        if (err.response.status === 401) {
-          setError('Authentication error - please log in again');
-        } else if (err.response.status === 404) {
-          setError('Notification service not found');
-        } else {
-          setError(`Failed to load notifications: ${err.response.data?.msg || 'Server error'}`);
-        }
-      } else if (err.request) {
-        // The request was made but no response was received
-        setError('Network error - please check your connection');
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        setError('Failed to load notifications');
-      }
+      console.error('Error fetching notifications:', err);
+      setError(err.response?.data?.msg || 'Failed to load notifications');
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, user, API_BASE_URL]);
-  
-  // Mark notification as read
+  };
+
   const markAsRead = async (notificationId) => {
-    if (!isAuthenticated || !notificationId) return;
-    
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      
-      const config = {
-        headers: {
-          'x-auth-token': token,
-          'Content-Type': 'application/json'
-        }
-      };
-      
-      await axios.put(
-        `${API_BASE_URL}/api/notifications/${notificationId}/read`,
-        {},
-        config
-      );
-      
-      // Update local state
-      setNotifications(
-        notifications.map(notification =>
-          notification._id === notificationId
-            ? { ...notification, read: true }
-            : notification
-        )
-      );
-      
-      // Update unread count
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (err) {
-      console.error('Error marking notification as read:', err.response?.data || err.message);
-    }
-  };
-  
-  // Mark all notifications as read
-  const markAllAsRead = async () => {
-    if (!isAuthenticated) return;
-    
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      
-      const config = {
-        headers: {
-          'x-auth-token': token,
-          'Content-Type': 'application/json'
-        }
-      };
-      
-      await axios.put(
-        `${API_BASE_URL}/api/notifications/read-all`,
-        {},
-        config
-      );
-      
-      // Update local state
-      setNotifications(
-        notifications.map(notification => ({
-          ...notification,
-          read: true
-        }))
-      );
-      
-      // Reset unread count
-      setUnreadCount(0);
-    } catch (err) {
-      console.error('Error marking all notifications as read:', err.response?.data || err.message);
-    }
-  };
-  
-  // Delete notification
-  const deleteNotification = async (notificationId) => {
-    if (!isAuthenticated || !notificationId) return;
-    
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      
-      const config = {
-        headers: {
-          'x-auth-token': token,
-          'Content-Type': 'application/json'
-        }
-      };
-      
-      await axios.delete(
-        `${API_BASE_URL}/api/notifications/${notificationId}`,
-        config
-      );
-      
-      // Update local state
-      const updatedNotifications = notifications.filter(
-        notification => notification._id !== notificationId
-      );
-      
-      setNotifications(updatedNotifications);
-      
-      // Update unread count if needed
-      const deletedNotification = notifications.find(
-        notification => notification._id === notificationId
-      );
-      
-      if (deletedNotification && !deletedNotification.read) {
-        setUnreadCount(prev => Math.max(0, prev - 1));
+      const response = await axios.put(ENDPOINTS.NOTIFICATIONS.MARK_AS_READ(notificationId));
+      if (response.data) {
+        setNotifications(prevNotifications =>
+          prevNotifications.map(notification =>
+            notification._id === notificationId
+              ? { ...notification, read: true }
+              : notification
+          )
+        );
+        return true;
       }
+      return false;
     } catch (err) {
-      console.error('Error deleting notification:', err.response?.data || err.message);
+      setError(err.response?.data?.msg || 'Failed to mark notification as read');
+      return false;
     }
   };
-  
-  // Fetch notifications when user changes or when auth state changes
-  useEffect(() => {
-    let isMounted = true;
-    
-    if (isAuthenticated && user) {
-      // Initial fetch
-      fetchNotifications();
-      
-      // Set up interval to refresh notifications every minute
-      // Use a more efficient approach by checking if the component is still mounted
-      // and if the user is active before fetching
-      const intervalId = setInterval(() => {
-        // Only fetch if the component is still mounted and the user has been active recently
-        // This helps reduce unnecessary API calls when the user is inactive
-        if (isMounted && document.visibilityState === 'visible') {
-          fetchNotifications();
-        }
-      }, 60000); // 60 seconds
-      
-      // Clean up interval on unmount
-      return () => {
-        isMounted = false;
-        clearInterval(intervalId);
-      };
-    } else {
-      setNotifications([]);
-      setUnreadCount(0);
+
+  const markAllAsRead = async () => {
+    try {
+      const response = await axios.put(ENDPOINTS.NOTIFICATIONS.MARK_ALL_AS_READ);
+      if (response.data) {
+        setNotifications(prevNotifications =>
+          prevNotifications.map(notification => ({ ...notification, read: true }))
+        );
+        return true;
+      }
+      return false;
+    } catch (err) {
+      setError(err.response?.data?.msg || 'Failed to mark all notifications as read');
+      return false;
     }
-    
-    return () => {
-      isMounted = false;
-    };
-  }, [isAuthenticated, user, fetchNotifications]);
-  
-  const contextValue = {
+  };
+
+  const deleteNotification = async (notificationId) => {
+    try {
+      const response = await axios.delete(ENDPOINTS.NOTIFICATIONS.DELETE(notificationId));
+      if (response.data) {
+        setNotifications(prevNotifications =>
+          prevNotifications.filter(notification => notification._id !== notificationId)
+        );
+        return true;
+      }
+      return false;
+    } catch (err) {
+      setError(err.response?.data?.msg || 'Failed to delete notification');
+      return false;
+    }
+  };
+
+  const clearAllNotifications = async () => {
+    try {
+      const response = await axios.delete(ENDPOINTS.NOTIFICATIONS.CLEAR_ALL);
+      if (response.data) {
+        setNotifications([]);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      setError(err.response?.data?.msg || 'Failed to clear all notifications');
+      return false;
+    }
+  };
+
+  const value = {
     notifications,
-    unreadCount,
     loading,
     error,
     fetchNotifications,
     markAsRead,
     markAllAsRead,
-    deleteNotification
+    deleteNotification,
+    clearAllNotifications,
+    setError
   };
-  
+
   return (
-    <NotificationContext.Provider value={contextValue}>
+    <NotificationContext.Provider value={value}>
       {children}
     </NotificationContext.Provider>
   );

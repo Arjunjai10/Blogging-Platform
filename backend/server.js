@@ -47,22 +47,44 @@ app.use(passport.initialize());
 
 // CORS configuration with more specific settings for Vercel deployment
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL || 'https://blogging-platform-uhre.vercel.app/'] 
-    : 'http://localhost:3000',
-  methods: 'GET,POST,PUT,DELETE,OPTIONS',
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'https://blogging-platform-uhre.vercel.app',
+      process.env.FRONTEND_URL
+    ].filter(Boolean); // Remove any undefined values
+
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('Blocked by CORS:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
-  allowedHeaders: 'Content-Type,Authorization,x-auth-token'
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400 // 24 hours
 };
 
 app.use(cors(corsOptions));
 
 // Handle preflight requests
-app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+app.options('*', cors(corsOptions));
+
+// Error handling middleware for CORS
+app.use((err, req, res, next) => {
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({
+      error: 'CORS Error',
+      message: 'Request not allowed from this origin'
+    });
   }
-  next();
+  next(err);
 });
 
 // Debug middleware for request logging

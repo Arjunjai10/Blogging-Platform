@@ -11,40 +11,32 @@ import {
   Paper,
   Alert,
   CircularProgress,
-  Divider
+  InputAdornment,
+  IconButton,
 } from '@mui/material';
-import { Google } from '@mui/icons-material';
+import { Visibility, VisibilityOff, Email, Lock } from '@mui/icons-material';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 
 const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
   });
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState(null);
   
-  const { login, isAuthenticated, error, setError } = useContext(AuthContext);
+  const { isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
-  
-  // Add environment variable check
-  useEffect(() => {
-    console.log('Environment Variables Check:');
-    console.log('REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
-    console.log('PUBLIC_URL:', process.env.PUBLIC_URL);
-    console.log('Current API Endpoint:', ENDPOINTS.AUTH.LOGIN);
-  }, []);
   
   useEffect(() => {
     // If already authenticated, redirect to home
     if (isAuthenticated) {
       navigate('/');
     }
-    
-    // Clear any previous errors
-    setError(null);
-  }, [isAuthenticated, navigate, setError]);
+  }, [isAuthenticated, navigate]);
   
   const validate = () => {
     const errors = {};
@@ -75,46 +67,57 @@ const Login = () => {
     e.preventDefault();
     
     if (validate()) {
+      setIsSubmitting(true);
+      setError(null);
+      
       try {
-        setIsSubmitting(true);
-        console.log('Attempting login with:', { email: formData.email });
-        console.log('API URL:', ENDPOINTS.AUTH.LOGIN);
+        console.log('Attempting login with:', {
+          email: formData.email,
+          password: '********' // Don't log actual password
+        });
         
-        // Try direct axios call first to debug
-        try {
-          const response = await axios.post(ENDPOINTS.AUTH.LOGIN, formData);
-          console.log('Login response:', response.data);
+        // Make the API call using the ENDPOINTS constant
+        const response = await axios.post(ENDPOINTS.AUTH.LOGIN, formData);
+        console.log('Login successful:', response.data);
+        
+        if (response.data && response.data.token) {
+          // Store token and user data in localStorage
+          localStorage.setItem('token', response.data.token);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
           
-          if (response.data && response.data.token) {
-            localStorage.setItem('token', response.data.token);
-            localStorage.setItem('user', JSON.stringify(response.data.user));
-            axios.defaults.headers.common['x-auth-token'] = response.data.token;
-            navigate('/');
-          } else {
-            setError('Login successful but no token received');
-          }
-        } catch (axiosError) {
-          console.error('Axios error:', axiosError.response?.data || axiosError.message);
-          setError(axiosError.response?.data?.msg || 'Login failed. Please try again.');
+          // Set axios default headers for future requests
+          axios.defaults.headers.common['x-auth-token'] = response.data.token;
+          
+          // Show success message and redirect
+          alert('Login successful! Redirecting to home page...');
+          window.location.href = '/';
+        } else {
+          setError('Login successful but session initialization failed. Please try again.');
         }
-      } catch (err) {
-        console.error('Login error:', err);
-        const errorMessage = handleApiError(err);
-        setError(errorMessage);
+      } catch (apiError) {
+        console.error('API error:', apiError.response?.data || apiError.message);
+        setError(apiError.response?.data?.msg || 'Login failed. Please check your credentials.');
+      } catch (error) {
+        console.error('Login error:', error.message);
+        setError('An unexpected error occurred. Please try again.');
       } finally {
         setIsSubmitting(false);
       }
     }
   };
   
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+  
   return (
     <Container maxWidth="sm" sx={{ mt: 8, mb: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
         <Typography variant="h4" component="h1" align="center" gutterBottom>
-          Log In
+          Login
         </Typography>
         
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
         
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <TextField
@@ -130,6 +133,13 @@ const Login = () => {
             onChange={handleChange}
             error={!!formErrors.email}
             helperText={formErrors.email}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Email />
+                </InputAdornment>
+              ),
+            }}
           />
           
           <TextField
@@ -138,13 +148,31 @@ const Login = () => {
             fullWidth
             name="password"
             label="Password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             id="password"
             autoComplete="current-password"
             value={formData.password}
             onChange={handleChange}
             error={!!formErrors.password}
             helperText={formErrors.password}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Lock />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={togglePasswordVisibility}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           
           <Button
@@ -154,46 +182,15 @@ const Login = () => {
             sx={{ mt: 3, mb: 2 }}
             disabled={isSubmitting}
           >
-            {isSubmitting ? <CircularProgress size={24} /> : 'Log In'}
+            {isSubmitting ? <CircularProgress size={24} /> : 'Login'}
           </Button>
           
-          <Box sx={{ my: 2 }}>
-            <Divider sx={{ mb: 2 }}>OR</Divider>
-            <Button
-              fullWidth
-              variant="outlined"
-              startIcon={<Google />}
-              onClick={() => window.location.href = ENDPOINTS.AUTH.GOOGLE_LOGIN}
-              sx={{
-                borderColor: '#4285F4',
-                color: '#4285F4',
-                '&:hover': {
-                  borderColor: '#4285F4',
-                  backgroundColor: 'rgba(66, 133, 244, 0.04)'
-                }
-              }}
-            >
-              Log in with Google
-            </Button>
-          </Box>
-          
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="body2">
-              Don't have an account?{' '}
-              <Link component={RouterLink} to="/register" variant="body2">
-                Sign Up 
-              </Link>
-            </Typography>
+          <Box sx={{ textAlign: 'center', mt: 2 }}>
+            <Link component={RouterLink} to="/register" variant="body2">
+              Don't have an account? Sign up
+            </Link>
           </Box>
         </Box>
-        <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="body2">
-              Or as Admin?{' '}
-              <Link component={RouterLink} to="/admin/login" variant="body2">
-                Admin Login
-              </Link>
-            </Typography>
-          </Box>
       </Paper>
     </Container>
   );
