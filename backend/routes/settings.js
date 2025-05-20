@@ -27,12 +27,12 @@ router.get('/', async (req, res) => {
   }
 });
 
-// @route   GET api/settings/:section
+// @route   GET api/settings/section/:sectionName
 // @desc    Get settings by section
 // @access  Public
-router.get('/:section', async (req, res) => {
+router.get('/section/:sectionName', async (req, res) => {
   try {
-    const settings = await Setting.find({ section: req.params.section });
+    const settings = await Setting.find({ section: req.params.sectionName });
     
     // Transform to a more usable format
     const formattedSettings = settings.reduce((acc, setting) => {
@@ -95,17 +95,17 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-// @route   PUT api/settings/:section/:key
+// @route   PUT api/settings/update/:sectionName/:keyName
 // @desc    Update a single setting
 // @access  Private (Admin only)
-router.put('/:section/:key', auth, async (req, res) => {
+router.put('/update/:sectionName/:keyName', auth, async (req, res) => {
   try {
     // Check if user is admin
     if (!req.user.isAdmin) {
       return res.status(403).json({ msg: 'Not authorized to update settings' });
     }
     
-    const { section, key } = req.params;
+    const { sectionName, keyName } = req.params;
     const { value } = req.body;
     
     if (value === undefined) {
@@ -114,8 +114,8 @@ router.put('/:section/:key', auth, async (req, res) => {
     
     // Update or create the setting
     const setting = await Setting.findOneAndUpdate(
-      { key, section },
-      { key, value, section },
+      { key: keyName, section: sectionName },
+      { key: keyName, value, section: sectionName },
       { upsert: true, new: true }
     );
     

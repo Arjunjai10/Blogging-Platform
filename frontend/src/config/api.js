@@ -12,6 +12,7 @@ const API_BASE_URL = 'https://blogging-platform-msqm.onrender.com';
 axios.defaults.baseURL = API_BASE_URL;
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 axios.defaults.withCredentials = true;
+axios.defaults.headers.common['Accept'] = 'application/json';
 
 // Define all API endpoints
 export const ENDPOINTS = {
@@ -51,7 +52,9 @@ export const ENDPOINTS = {
   },
   SETTINGS: {
     GET: '/api/settings',
+    GET_BY_SECTION: (section) => `/api/settings/section/${section}`,
     UPDATE: '/api/settings',
+    UPDATE_SINGLE: (section, key) => `/api/settings/update/${section}/${key}`,
     INITIALIZE: '/api/settings/initialize'
   },
   NOTIFICATIONS: {
