@@ -346,14 +346,14 @@ const Home = () => {
               <Box
                 sx={{
                   position: 'relative',
-                  p: { xs: 3, md: 6 },
+                  p: { xs: 8, md: 6 },
                   pr: { md: 0 },
                 }}
               >
                 <Typography component="h1" variant="h3" color="white" gutterBottom>
                   {featuredPosts[0].title}
                 </Typography>
-                <Typography variant="h5" color="white" paragraph>
+                <Typography variant="h5" color="white" paragraph> 
                   {truncateText(featuredPosts[0].content, 150)}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>

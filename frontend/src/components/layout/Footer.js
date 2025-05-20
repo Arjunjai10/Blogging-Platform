@@ -116,7 +116,7 @@ const Footer = () => {
                 }
               }}
             >
-              Contact us: {settings?.contact?.email || 'contact@mernblog.com'}
+              Contact us: {settings?.contact?.email || 'echoridge@gmail.com'}
             </Typography>
           </Grid>
           

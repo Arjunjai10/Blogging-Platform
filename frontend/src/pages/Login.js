@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { Google } from '@mui/icons-material';
 import { AuthContext } from '../context/AuthContext';
+import axios from 'axios';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -26,6 +27,14 @@ const Login = () => {
   
   const { login, isAuthenticated, error, setError } = useContext(AuthContext);
   const navigate = useNavigate();
+  
+  // Add environment variable check
+  useEffect(() => {
+    console.log('Environment Variables Check:');
+    console.log('REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+    console.log('PUBLIC_URL:', process.env.PUBLIC_URL);
+    console.log('Current API Endpoint:', ENDPOINTS.AUTH.LOGIN);
+  }, []);
   
   useEffect(() => {
     // If already authenticated, redirect to home
@@ -68,14 +77,28 @@ const Login = () => {
     if (validate()) {
       try {
         setIsSubmitting(true);
+        console.log('Attempting login with:', { email: formData.email });
+        console.log('API URL:', ENDPOINTS.AUTH.LOGIN);
         
-        const success = await login(formData);
-        
-        if (success) {
-          navigate('/');
+        // Try direct axios call first to debug
+        try {
+          const response = await axios.post(ENDPOINTS.AUTH.LOGIN, formData);
+          console.log('Login response:', response.data);
+          
+          if (response.data && response.data.token) {
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+            axios.defaults.headers.common['x-auth-token'] = response.data.token;
+            navigate('/');
+          } else {
+            setError('Login successful but no token received');
+          }
+        } catch (axiosError) {
+          console.error('Axios error:', axiosError.response?.data || axiosError.message);
+          setError(axiosError.response?.data?.msg || 'Login failed. Please try again.');
         }
       } catch (err) {
-        // Use the centralized error handler
+        console.error('Login error:', err);
         const errorMessage = handleApiError(err);
         setError(errorMessage);
       } finally {
@@ -160,7 +183,6 @@ const Login = () => {
               <Link component={RouterLink} to="/register" variant="body2">
                 Sign Up 
               </Link>
-              
             </Typography>
           </Box>
         </Box>

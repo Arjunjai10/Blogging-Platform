@@ -255,7 +255,13 @@ const Navbar = () => {
             aria-expanded={Boolean(anchorEl) ? 'true' : undefined}
           >
             <StyledAvatar 
-              src={user?.profilePicture} 
+              src={user?.profilePicture ? 
+                (user.profilePicture.startsWith('http') ? 
+                  user.profilePicture : 
+                  `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${user.profilePicture}`
+                ) : 
+                ''
+              } 
               alt={user?.username} 
               sx={{ 
                 width: 32, 
@@ -587,7 +593,7 @@ const Navbar = () => {
                   }}
                 >
                   <img 
-                    src="/blogger.png" 
+                    src={process.env.PUBLIC_URL + '/blogger.png'} 
                     alt="Blog Logo" 
                     style={{ 
                       height: '32px',
@@ -624,7 +630,7 @@ const Navbar = () => {
                   }}
                 >
                   <img 
-                    src="/blogger.png" 
+                    src={process.env.PUBLIC_URL + '/blogger.png'} 
                     alt="Blog Logo" 
                     style={{ 
                       height: '36px',

@@ -4,7 +4,12 @@
  */
 
 // Base URL for all API requests
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://blogging-platform-msqm.onrender.com';
+
+// Configure axios defaults
+import axios from 'axios';
+axios.defaults.headers.common['Content-Type'] = 'application/json';
+axios.defaults.withCredentials = true; // Enable CORS credentials
 
 // API endpoints
 export const ENDPOINTS = {
