@@ -3,8 +3,8 @@
  * This file contains all API-related configuration and utilities
  */
 
-// Base URL for all API requests
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://blogging-platform-msqm.onrender.com';
+// Base URL for all API requests - Always use the deployed URL
+export const API_BASE_URL = 'https://blogging-platform-msqm.onrender.com';
 
 // Configure axios defaults
 import axios from 'axios';

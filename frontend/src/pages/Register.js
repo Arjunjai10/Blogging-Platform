@@ -150,8 +150,6 @@ const Register = () => {
           hasProfilePic: !!formData.profilePicture
         });
         
-        // Make direct API call instead of using context
-        const API_BASE_URL = 'http://localhost:5000';
         const config = {
           headers: {
             'Content-Type': 'multipart/form-data'
@@ -159,8 +157,8 @@ const Register = () => {
         };
         
         try {
-          // Make the API call directly
-          const response = await axios.post(`${API_BASE_URL}/api/auth/register`, submitData, config);
+          // Make the API call using the ENDPOINTS constant
+          const response = await axios.post(ENDPOINTS.AUTH.REGISTER, submitData, config);
           console.log('Registration successful:', response.data);
           
           if (response.data && response.data.token) {
